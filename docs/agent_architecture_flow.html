@@ -1,0 +1,1549 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HomeGuard Agent 架构流程学习页</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2f;
+      --panel-2: #10233c;
+      --panel-3: #142944;
+      --line: rgba(148, 163, 184, 0.24);
+      --line-strong: rgba(125, 211, 252, 0.38);
+      --text: #eef6ff;
+      --muted: #a7b7cc;
+      --soft: #d6e7fb;
+      --blue: #38bdf8;
+      --cyan: #22d3ee;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --red: #fb7185;
+      --purple: #a78bfa;
+      --code: #06101d;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.22), transparent 34%),
+        radial-gradient(circle at 92% 8%, rgba(167, 139, 250, 0.18), transparent 32%),
+        linear-gradient(180deg, #06101d 0%, #07111f 42%, #081525 100%);
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono);
+    }
+
+    .shell {
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(13, 27, 47, 0.82);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-title {
+      display: grid;
+      gap: 2px;
+      margin-bottom: 16px;
+    }
+
+    .nav-title strong {
+      font-size: 15px;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav a {
+      display: block;
+      padding: 10px 11px;
+      border-radius: 12px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    .nav a:hover {
+      background: rgba(56, 189, 248, 0.1);
+      text-decoration: none;
+    }
+
+    .nav-note {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(52, 211, 153, 0.26);
+      border-radius: 16px;
+      color: #c8f8df;
+      background: rgba(5, 46, 32, 0.32);
+      font-size: 12px;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .hero,
+    .section {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(13, 27, 47, 0.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 40px;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(56, 189, 248, 0.12), transparent 46%),
+        radial-gradient(circle at 80% 18%, rgba(52, 211, 153, 0.14), transparent 28%);
+      pointer-events: none;
+    }
+
+    .hero > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 7px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: #c7ecff;
+      background: rgba(56, 189, 248, 0.1);
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 18px rgba(52, 211, 153, 0.9);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 980px;
+      margin: 18px 0 14px;
+      font-size: clamp(34px, 5vw, 72px);
+      line-height: 1.03;
+      letter-spacing: -0.055em;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+      font-size: clamp(26px, 3vw, 40px);
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      color: var(--muted);
+    }
+
+    .hero p {
+      max-width: 900px;
+      margin-bottom: 0;
+      color: #c6d6ea;
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 22px;
+      align-items: end;
+      margin-top: 28px;
+    }
+
+    .principle-card {
+      padding: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.26);
+      border-radius: 24px;
+      background: rgba(6, 16, 29, 0.6);
+    }
+
+    .principle-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #e7f7ff;
+      font-size: 15px;
+    }
+
+    .principle-card p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-top: 24px;
+      padding: 30px;
+    }
+
+    .section-lead {
+      max-width: 860px;
+      margin-bottom: 24px;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(16, 35, 60, 0.72);
+      padding: 18px;
+    }
+
+    .card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      margin-bottom: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #06101d;
+      background: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tag.green {
+      background: var(--green);
+    }
+
+    .tag.amber {
+      background: var(--amber);
+    }
+
+    .tag.purple {
+      background: var(--purple);
+    }
+
+    .tag.red {
+      background: var(--red);
+    }
+
+    .architecture-map {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .arch-node {
+      position: relative;
+      min-height: 150px;
+      padding: 16px;
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(56, 189, 248, 0.11), transparent),
+        rgba(6, 16, 29, 0.55);
+    }
+
+    .arch-node::after {
+      content: "->";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue);
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+
+    .arch-node:nth-child(4)::after,
+    .arch-node:nth-child(8)::after {
+      display: none;
+    }
+
+    .arch-node small {
+      display: block;
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .arch-node strong {
+      display: block;
+      margin: 8px 0 7px;
+      color: #f6fbff;
+      font-size: 17px;
+    }
+
+    .arch-node p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .loop-console {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .console-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .console-list li {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(6, 16, 29, 0.48);
+    }
+
+    .step-index {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      color: #06101d;
+      background: var(--green);
+      font-family: var(--mono);
+      font-weight: 900;
+    }
+
+    .console-list strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .console-list span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .terminal {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      border-radius: 20px;
+      background: #06101d;
+    }
+
+    .terminal-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      color: #b8f7d9;
+      background: rgba(52, 211, 153, 0.08);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .light {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.82);
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      color: #dff7ff;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .scenario-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .scenario-button {
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--soft);
+      background: rgba(16, 35, 60, 0.72);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .scenario-button:hover,
+    .scenario-button.active {
+      transform: translateY(-1px);
+      color: #06101d;
+      border-color: transparent;
+      background: var(--blue);
+    }
+
+    .scenario-board {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.42fr) minmax(0, 0.58fr);
+      gap: 18px;
+    }
+
+    .scenario-summary {
+      display: grid;
+      gap: 14px;
+    }
+
+    .scenario-title {
+      margin-bottom: 4px;
+      color: #f6fbff;
+      font-size: 24px;
+    }
+
+    .scenario-user {
+      padding: 16px;
+      border-radius: 18px;
+      color: #dff7ff;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .timeline-dot {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      color: #06101d;
+      background: var(--amber);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .timeline-text {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--soft);
+      background: rgba(6, 16, 29, 0.48);
+      font-size: 13px;
+    }
+
+    .io-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .io-panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #06101d;
+    }
+
+    .io-panel.wide {
+      grid-column: 1 / -1;
+    }
+
+    .io-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      color: #dff7ff;
+      background: rgba(16, 35, 60, 0.74);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .io-title span {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .answer-box {
+      padding: 16px;
+      color: #dff7ff;
+      font-size: 14px;
+    }
+
+    .answer-box p {
+      margin-bottom: 10px;
+      color: #dff7ff;
+    }
+
+    .answer-box ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .pipeline {
+      min-height: 100%;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(6, 16, 29, 0.48);
+    }
+
+    .pipeline h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pipeline h3 span {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      color: #06101d;
+      background: var(--blue);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .pipe-flow {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pipe-item {
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 14px;
+      color: #d8eaff;
+      background: rgba(16, 35, 60, 0.62);
+      font-size: 14px;
+    }
+
+    .pipe-arrow {
+      color: var(--muted);
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(6, 16, 29, 0.44);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+
+    th,
+    td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: #dff7ff;
+      background: rgba(16, 35, 60, 0.72);
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .dial-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .dial {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(6, 16, 29, 0.48);
+    }
+
+    .dial strong {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .dial strong span {
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .meter {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .meter i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .dial p {
+      margin: 12px 0 0;
+      font-size: 13px;
+    }
+
+    .callout {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      border-radius: 20px;
+      background: rgba(69, 46, 6, 0.28);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #ffe7a2;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #f8ddb0;
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        position: static;
+      }
+
+      .architecture-map,
+      .dial-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .arch-node::after {
+        display: none;
+      }
+
+      .hero-grid,
+      .loop-console,
+      .scenario-board,
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100% - 24px, 1440px);
+        padding-top: 16px;
+      }
+
+      .hero,
+      .section {
+        padding: 20px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .architecture-map,
+      .dial-grid,
+      .io-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="nav" aria-label="页面导航">
+      <div class="nav-title">
+        <strong>Agent 架构学习页</strong>
+        <span>HomeGuard Security Agent</span>
+      </div>
+      <a href="#overview">核心定位</a>
+      <a href="#architecture">整体架构</a>
+      <a href="#loop">决策闭环</a>
+      <a href="#examples">调用案例</a>
+      <a href="#rag">RAG 对比</a>
+      <a href="#intelligence">智能来源</a>
+      <a href="#interview">面试讲法</a>
+      <div class="nav-note">
+        页面中的模型输入输出是基于当前项目协议整理的代表性样例，用来解释架构，不等同于一次真实线上日志。
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="overview">
+        <div class="eyebrow"><span class="status-dot"></span>LLM Agent Architecture Map</div>
+        <h1>不是普通 RAG，而是一个受控的安防业务 Agent</h1>
+        <p>
+          这个项目的核心升级，是把大模型从“回答生成器”提升为“任务决策中心”。模型负责理解用户意图、选择下一步动作、融合工具结果；后端负责约束动作空间、执行工具、校验参数和保存可观测事件。
+        </p>
+
+        <div class="hero-grid">
+          <div class="principle-card">
+            <strong>一句话架构摘要</strong>
+            <p>
+              用户自然语言输入进入 Agent 后，模型先输出结构化决策。如果需要外部能力，后端执行白名单工具，并把 observation 回填给模型。最终回答必须基于真实工具结果，而不是凭空生成。
+            </p>
+          </div>
+          <div class="grid">
+            <div class="principle-card">
+              <strong>面试关键词</strong>
+              <p>轻量 ReAct、工具调用、结构化输出、受控执行、Observation 回填、业务能力编排。</p>
+            </div>
+            <div class="principle-card">
+              <strong>核心边界</strong>
+              <p>模型只做决策，不直接操作设备；工具只在后端执行，IoT 当前是校验后的模拟控制。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="architecture">
+        <h2>整体架构：把“自然语言”转成“可控业务动作”</h2>
+        <p class="section-lead">
+          从大模型 Agent 的角度看，这个系统不是一个检索增强问答链路，而是一个“上下文管理 + 模型决策 + 工具执行 + 结果回填 + 最终表达”的闭环。每一层只承担一个清晰职责。
+        </p>
+
+        <div class="architecture-map" aria-label="Agent 架构流程图">
+          <div class="arch-node">
+            <small>01</small>
+            <strong>用户意图</strong>
+            <p>用户只说目标，例如查视频、问天气、移动摄像头，不需要知道底层工具。</p>
+          </div>
+          <div class="arch-node">
+            <small>02</small>
+            <strong>上下文打包</strong>
+            <p>系统合并角色约束、工具规格、历史对话和当前消息，形成模型可判断的输入。</p>
+          </div>
+          <div class="arch-node">
+            <small>03</small>
+            <strong>模型决策层</strong>
+            <p>LLM 判断下一步是直接回答，还是调用 web、video、iot 等外部能力。</p>
+          </div>
+          <div class="arch-node">
+            <small>04</small>
+            <strong>动作协议</strong>
+            <p>模型必须输出 JSON 决策，不能用自由文本直接驱动业务动作。</p>
+          </div>
+          <div class="arch-node">
+            <small>05</small>
+            <strong>工具能力层</strong>
+            <p>后端按白名单执行联网搜索、视频语义检索、IoT 模拟控制。</p>
+          </div>
+          <div class="arch-node">
+            <small>06</small>
+            <strong>Observation 回填</strong>
+            <p>工具返回结果、状态和耗时，作为事实依据重新交给模型。</p>
+          </div>
+          <div class="arch-node">
+            <small>07</small>
+            <strong>最终回复</strong>
+            <p>模型基于工具 observation 生成自然语言，不编造未返回的视频或设备状态。</p>
+          </div>
+          <div class="arch-node">
+            <small>08</small>
+            <strong>前端可观测</strong>
+            <p>页面展示回答、工具轨迹、IoT 状态和视频结果，让 Agent 过程可解释。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="loop">
+        <h2>Agent 决策闭环：Reasoning + Action + Observation</h2>
+        <p class="section-lead">
+          当前框架最重要的能力，是允许模型在受控空间里动态选择动作。它不是每次都固定检索，也不是每次都调用同一个工具，而是根据用户目标做路由和参数生成。
+        </p>
+
+        <div class="loop-console">
+          <ol class="console-list">
+            <li>
+              <span class="step-index">1</span>
+              <div>
+                <strong>理解意图</strong>
+                <span>模型读取系统角色、工具说明、历史上下文和用户请求，判断任务类型。</span>
+              </div>
+            </li>
+            <li>
+              <span class="step-index">2</span>
+              <div>
+                <strong>选择动作</strong>
+                <span>模型输出结构化 JSON，动作只能是 final_answer 或白名单工具调用。</span>
+              </div>
+            </li>
+            <li>
+              <span class="step-index">3</span>
+              <div>
+                <strong>执行工具</strong>
+                <span>后端校验参数，执行工具，生成统一的 ToolEvent 和业务状态。</span>
+              </div>
+            </li>
+            <li>
+              <span class="step-index">4</span>
+              <div>
+                <strong>回填观察</strong>
+                <span>工具结果以 observation 形式回到模型上下文，下一轮模型基于事实继续判断。</span>
+              </div>
+            </li>
+            <li>
+              <span class="step-index">5</span>
+              <div>
+                <strong>生成回复</strong>
+                <span>最终表达和执行决策分离，回答必须引用已知工具结果和校验状态。</span>
+              </div>
+            </li>
+          </ol>
+
+          <div class="terminal">
+            <div class="terminal-head"><span class="light"></span>agent-loop.contract</div>
+            <pre>{
+  "decision_space": ["final_answer", "web_search", "video_search", "iot_control"],
+  "model_role": "意图理解、动作选择、参数生成、结果融合",
+  "backend_role": "工具白名单、参数校验、执行边界、事件记录",
+  "loop_shape": "decision -> tool -> observation -> decision_or_answer",
+  "safety_rule": "模型不能直接接触设备和外部系统，只能请求后端执行受控工具"
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="examples">
+        <h2>不同场景的模型输入输出和工具调用</h2>
+        <p class="section-lead">
+          下面的案例展示同一个 Agent 为什么能应对不同任务。关键点不是写了多少 if else，而是模型先判断任务类型，再用统一协议选择动作，后端用统一方式执行和回填结果。
+        </p>
+
+        <div class="scenario-tabs" role="tablist" aria-label="案例切换">
+          <button class="scenario-button active" type="button" data-scenario="chat">普通问答</button>
+          <button class="scenario-button" type="button" data-scenario="web">实时联网</button>
+          <button class="scenario-button" type="button" data-scenario="video">视频检索</button>
+          <button class="scenario-button" type="button" data-scenario="iot">IoT 控制</button>
+          <button class="scenario-button" type="button" data-scenario="safety">安全边界</button>
+        </div>
+
+        <div class="scenario-board">
+          <div class="scenario-summary">
+            <div class="card">
+              <div class="tag" id="scenario-tag">final_answer</div>
+              <h3 class="scenario-title" id="scenario-title">普通问答：不调用工具</h3>
+              <p id="scenario-description">当问题不需要实时信息、视频库或设备动作时，模型直接生成 final_answer。</p>
+            </div>
+
+            <div class="scenario-user" id="scenario-user">
+              用户：你能帮我做什么？
+            </div>
+
+            <div class="card">
+              <h3>执行时间线</h3>
+              <div class="timeline" id="scenario-timeline"></div>
+            </div>
+
+            <div class="card">
+              <h3>智能点</h3>
+              <div class="answer-box" id="scenario-insight"></div>
+            </div>
+          </div>
+
+          <div class="io-grid">
+            <div class="io-panel">
+              <div class="io-title">模型输入 <span>contract input</span></div>
+              <pre id="model-input"></pre>
+            </div>
+            <div class="io-panel">
+              <div class="io-title">模型决策输出 <span>json decision</span></div>
+              <pre id="model-output"></pre>
+            </div>
+            <div class="io-panel">
+              <div class="io-title">工具执行结果 <span>backend event</span></div>
+              <pre id="tool-result"></pre>
+            </div>
+            <div class="io-panel">
+              <div class="io-title">Observation 回填 <span>model context</span></div>
+              <pre id="observation"></pre>
+            </div>
+            <div class="io-panel wide">
+              <div class="io-title">最终用户回复 <span>natural answer</span></div>
+              <div class="answer-box" id="final-answer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="rag">
+        <h2>和普通 RAG 的区别：从“查资料回答”升级为“业务动作编排”</h2>
+        <p class="section-lead">
+          普通 RAG 的核心是把相关资料检索出来，让模型基于资料回答。当前 Agent 框架保留了检索思想，但把检索变成了工具之一，并且引入了动作选择、状态管理和工具执行边界。
+        </p>
+
+        <div class="comparison">
+          <div class="pipeline">
+            <h3><span>R</span>普通 RAG 链路</h3>
+            <p>适合知识问答、文档助手和引用型回答，流程通常固定。</p>
+            <div class="pipe-flow">
+              <div class="pipe-item">用户问题</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">向量化查询</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">检索文档片段</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">拼接上下文</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">模型生成答案</div>
+            </div>
+          </div>
+
+          <div class="pipeline">
+            <h3><span>A</span>当前 Agent 链路</h3>
+            <p>适合多能力业务助手，模型根据目标动态选择是否调用工具。</p>
+            <div class="pipe-flow">
+              <div class="pipe-item">用户目标</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">模型判断任务类型</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">选择 final 或工具动作</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">后端执行工具并回填 observation</div>
+              <div class="pipe-arrow">↓</div>
+              <div class="pipe-item">模型融合结果并生成回复</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:18px;">
+          <table>
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>普通 RAG</th>
+                <th>当前 Agent 框架</th>
+                <th>升级价值</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>核心目标</td>
+                <td>从知识库找资料，然后回答问题。</td>
+                <td>理解用户目标，选择工具，执行动作，融合结果。</td>
+                <td>从“问答系统”升级为“业务助手”。</td>
+              </tr>
+              <tr>
+                <td>流程形态</td>
+                <td>检索流程通常固定，每次问题都走相似路径。</td>
+                <td>模型每轮判断是直接回答、联网搜索、视频检索还是 IoT 控制。</td>
+                <td>能针对不同任务动态路由。</td>
+              </tr>
+              <tr>
+                <td>外部能力</td>
+                <td>主要依赖文档库和向量检索。</td>
+                <td>把联网搜索、VikingDB 视频检索、IoT 控制都抽象为工具。</td>
+                <td>检索只是工具之一，Agent 能连接真实业务系统。</td>
+              </tr>
+              <tr>
+                <td>模型输出</td>
+                <td>多数情况下直接输出自然语言。</td>
+                <td>先输出受约束 JSON 动作，再生成自然语言回复。</td>
+                <td>让模型决策可解析、可校验、可审计。</td>
+              </tr>
+              <tr>
+                <td>结果可信度</td>
+                <td>依赖检索片段是否相关，以及模型是否忠实引用。</td>
+                <td>工具事件记录输入、输出、状态和耗时，最终回答基于 observation。</td>
+                <td>过程可追踪，失败可解释。</td>
+              </tr>
+              <tr>
+                <td>安全边界</td>
+                <td>主要防止知识幻觉和引用错误。</td>
+                <td>模型不能直接执行设备动作，只能请求后端白名单工具。</td>
+                <td>更适合安防和 IoT 这种高风险业务场景。</td>
+              </tr>
+              <tr>
+                <td>评测指标</td>
+                <td>召回率、命中率、引用准确性、答案忠实度。</td>
+                <td>路由准确率、工具选择准确率、参数匹配度、安全拒绝率、最终回答质量。</td>
+                <td>评测从“答得对不对”扩展到“做得对不对”。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="intelligence">
+        <h2>它为什么看起来更智能：智能来自受控闭环，不是来自更复杂的代码</h2>
+        <p class="section-lead">
+          这个项目的智能感来自几个架构层面的组合：模型有决策空间，工具给它外部能力，协议让动作可控，observation 让回答基于事实，事件流让过程可观察。
+        </p>
+
+        <div class="dial-grid">
+          <div class="dial">
+            <strong>自主性 <span>8/10</span></strong>
+            <div class="meter"><i style="width:80%;"></i></div>
+            <p>模型不是只回答，而是能判断下一步是否需要工具。</p>
+          </div>
+          <div class="dial">
+            <strong>可控性 <span>7/10</span></strong>
+            <div class="meter"><i style="width:70%;"></i></div>
+            <p>动作空间被收敛到 JSON 协议和白名单工具。</p>
+          </div>
+          <div class="dial">
+            <strong>外部能力 <span>8/10</span></strong>
+            <div class="meter"><i style="width:80%;"></i></div>
+            <p>可以连接实时网络、视频库和 IoT 状态。</p>
+          </div>
+          <div class="dial">
+            <strong>可观测性 <span>9/10</span></strong>
+            <div class="meter"><i style="width:90%;"></i></div>
+            <p>工具调用、耗时、状态和结果都可以展示给前端。</p>
+          </div>
+        </div>
+
+        <div class="grid grid-3" style="margin-top:18px;">
+          <div class="card">
+            <div class="tag">01</div>
+            <h3>模型作为决策中心</h3>
+            <p>模型理解自然语言里的隐含目标，例如“昨晚门口有人吗”更像视频检索，“今天适不适合出门”更像实时搜索。</p>
+          </div>
+          <div class="card">
+            <div class="tag green">02</div>
+            <h3>工具作为能力插件</h3>
+            <p>工具把外部世界接进来。未来增加门锁、告警、家庭成员识别，只需要扩展工具能力层。</p>
+          </div>
+          <div class="card">
+            <div class="tag amber">03</div>
+            <h3>JSON 协议作为边界</h3>
+            <p>模型不能随意生成“我已经控制设备”，它必须先输出动作，再由后端校验和执行。</p>
+          </div>
+          <div class="card">
+            <div class="tag purple">04</div>
+            <h3>Observation 作为事实回路</h3>
+            <p>模型不是靠想象完成任务，而是等待工具返回，再基于返回结果继续生成答案。</p>
+          </div>
+          <div class="card">
+            <div class="tag red">05</div>
+            <h3>安全边界作为产品底线</h3>
+            <p>安防场景不能把模型自由输出直接变成设备动作，后端白名单和参数校验是必要边界。</p>
+          </div>
+          <div class="card">
+            <div class="tag">06</div>
+            <h3>事件流作为调试窗口</h3>
+            <p>前端能看到 Agent 正在分析、调用什么工具、工具是否成功，让智能过程可解释。</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>关键判断</strong>
+          <p>
+            当前框架的升级点不是“用了一个更大的模型”，而是把模型放在一个有工具、有协议、有状态、有反馈的闭环里。智能感来自模型决策能力和后端执行能力的组合。
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="interview">
+        <h2>面试时可以这样收束</h2>
+        <p class="section-lead">
+          下面这段可以直接作为口播结尾，用来把 Agent 架构、RAG 对比和业务价值合在一起。
+        </p>
+
+        <div class="terminal">
+          <div class="terminal-head"><span class="light"></span>interview.script</div>
+          <pre>这个项目和普通 RAG 最大的区别，是它不只是“检索一段资料再回答”，而是把大模型放在了一个受控的业务执行闭环里。
+
+普通 RAG 更像知识问答系统，核心能力是找到相关上下文。我的这个 Agent 更像业务编排层，用户说一句自然语言，系统要判断到底是直接回答、联网查实时信息、查视频语义库，还是模拟控制摄像头。
+
+所以我做了一个轻量 ReAct 架构：模型负责理解意图和选择动作，后端负责工具白名单、参数校验和执行边界。每次工具执行后，结果都会作为 observation 回填给模型，最终回答必须基于这些真实结果生成。
+
+这个设计让系统既有大模型的灵活理解能力，又不会让模型越过安全边界直接操作设备。对安防 C 端场景来说，这是一个比较关键的取舍：我们牺牲了一部分通用 Agent 的自由度，换来更强的可控性、可解释性和业务可落地性。</pre>
+        </div>
+      </section>
+
+      <div class="footer">
+        HomeGuard Agent 架构流程学习页。建议面试展示顺序：整体架构 -> 调用案例 -> RAG 对比 -> 架构取舍。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const scenarios = {
+      chat: {
+        tag: "final_answer",
+        title: "普通问答：不调用工具",
+        description: "当问题不需要实时信息、视频库或设备动作时，模型直接生成 final_answer。",
+        user: "用户：你能帮我做什么？",
+        timeline: [
+          "上下文打包：系统角色 + 工具说明 + 当前问题",
+          "模型判断：这是能力介绍，不需要工具",
+          "模型输出：final_answer",
+          "后端返回：无工具事件，直接生成回复"
+        ],
+        input: {
+          schema_name: "agent_step",
+          messages: [
+            { role: "system", content: "你是安防 C 端 App 内的智能 Agent，根据用户意图选择下一步。" },
+            { role: "system", content: "可用工具：web_search、video_search、iot_control。" },
+            { role: "user", content: "你能帮我做什么？" }
+          ]
+        },
+        output: {
+          type: "final_answer",
+          answer: "我可以帮你进行多轮问答、联网查询、查找监控视频内容，也可以模拟控制摄像头方向和隐私遮蔽。",
+          iot_action: "none"
+        },
+        tool: {
+          called: false,
+          reason: "模型判断无需访问外部工具。"
+        },
+        observation: {
+          tool_messages: [],
+          iot_state: { status: "idle", iot_action: "none" },
+          video_results: []
+        },
+        final: "<p>我可以帮你进行多轮问答、联网查询、查找监控视频内容，也可以模拟控制摄像头方向和隐私遮蔽。</p>",
+        insight: [
+          "模型不是每次都检索，而是先判断是否需要外部能力。",
+          "这避免了普通问答场景下的无效工具调用。"
+        ]
+      },
+      web: {
+        tag: "web_search",
+        title: "实时联网：调用 web_search",
+        description: "当用户问题依赖实时信息时，模型选择联网搜索工具，而不是依赖模型旧知识。",
+        user: "用户：今天上海适合出门吗？",
+        timeline: [
+          "模型识别：问题包含今天和天气，属于实时信息",
+          "模型输出：tool_call web_search",
+          "后端执行：优先天气查询，失败时可降级到搜索引擎",
+          "Observation 回填：天气摘要、来源、工具状态",
+          "模型生成：基于工具结果给出建议"
+        ],
+        input: {
+          schema_name: "agent_step",
+          messages: [
+            { role: "system", content: "如果需要实时网络信息，调用 web_search。" },
+            { role: "system", content: "web_search 输入格式：{\"query\":\"...\",\"top_k\":5}" },
+            { role: "user", content: "今天上海适合出门吗？" }
+          ]
+        },
+        output: {
+          type: "tool_call",
+          tool_name: "web_search",
+          arguments: { query: "上海 今天 天气 出门 建议", top_k: 5 },
+          reason: "用户询问今天是否适合出门，需要实时天气信息。"
+        },
+        tool: {
+          step: 1,
+          tool_name: "web_search",
+          input: { query: "上海 今天 天气 出门 建议", top_k: 5 },
+          output: {
+            provider: "wttr",
+            results: [
+              {
+                title: "上海今日天气",
+                snippet: "多云，气温 25 到 31 摄氏度，湿度偏高，午后可能有阵雨。"
+              }
+            ]
+          },
+          status: "success",
+          elapsed_ms: 842
+        },
+        observation: {
+          role: "tool",
+          content: {
+            tool_name: "web_search",
+            status: "success",
+            result: "上海今日多云，湿度偏高，午后可能有阵雨。"
+          }
+        },
+        final: "<p>今天上海可以出门，但建议带伞。天气以多云为主，湿度偏高，午后可能有阵雨。如果你要长时间在户外，建议避开午后时段，并关注临近预报。</p>",
+        insight: [
+          "RAG 只能查已有资料，web_search 让 Agent 接入实时世界。",
+          "模型负责判断需要实时信息，后端负责真实查询和降级策略。"
+        ]
+      },
+      video: {
+        tag: "video_search",
+        title: "视频检索：调用 VikingDB 多模态检索",
+        description: "当用户要找监控内容时，模型把自然语言目标转成视频语义检索查询。",
+        user: "用户：帮我找昨晚门口有人经过的视频。",
+        timeline: [
+          "模型识别：用户要查监控视频内容",
+          "模型输出：tool_call video_search",
+          "后端执行：向 VikingDB 发起多模态语义检索",
+          "Observation 回填：视频片段 ID、描述、相似度",
+          "模型生成：引用返回片段，不编造视频内容"
+        ],
+        input: {
+          schema_name: "agent_step",
+          messages: [
+            { role: "system", content: "如果用户要查监控视频内容，调用 video_search。" },
+            { role: "system", content: "video_search 输入格式：{\"query\":\"...\",\"limit\":10}" },
+            { role: "user", content: "帮我找昨晚门口有人经过的视频。" }
+          ]
+        },
+        output: {
+          type: "tool_call",
+          tool_name: "video_search",
+          arguments: { query: "昨晚 门口 有人经过 监控视频", limit: 10 },
+          reason: "用户希望从监控视频库中查找特定事件。"
+        },
+        tool: {
+          step: 1,
+          tool_name: "video_search",
+          input: { query: "昨晚 门口 有人经过 监控视频", limit: 10 },
+          output: {
+            results: [
+              {
+                f_id: "door_20260626_2241",
+                f_text: "夜间门口区域出现一名行人，从画面左侧经过。",
+                search_score: 0.86
+              },
+              {
+                f_id: "door_20260626_2318",
+                f_text: "门口画面中有短暂停留的人影，随后离开。",
+                search_score: 0.81
+              }
+            ]
+          },
+          status: "success",
+          elapsed_ms: 1264
+        },
+        observation: {
+          role: "tool",
+          content: {
+            tool_name: "video_search",
+            status: "success",
+            result_count: 2,
+            rule: "最终回答必须引用这些结果，不得编造未返回的视频内容。"
+          }
+        },
+        final: "<p>我找到了 2 条相关视频片段：</p><ul><li><strong>door_20260626_2241</strong>：夜间门口区域出现一名行人，从画面左侧经过。</li><li><strong>door_20260626_2318</strong>：门口画面中有短暂停留的人影，随后离开。</li></ul>",
+        insight: [
+          "这里的检索不只是文档 RAG，而是视频语义检索作为 Agent 工具。",
+          "模型负责把口语化需求改写成检索 query，并把返回片段组织成用户可读答案。"
+        ]
+      },
+      iot: {
+        tag: "iot_control",
+        title: "IoT 控制：调用受控设备动作",
+        description: "当用户表达设备控制意图时，模型生成结构化控制命令，后端校验后模拟执行。",
+        user: "用户：把客厅摄像头转向门口。",
+        timeline: [
+          "模型识别：这是摄像头方向控制",
+          "模型输出：tool_call iot_control",
+          "后端校验：device_id、action、target 是否合法",
+          "工具结果：生成 simulated_success 状态",
+          "最终回复：说明是模拟执行，不夸大为真实物理动作"
+        ],
+        input: {
+          schema_name: "agent_step",
+          messages: [
+            { role: "system", content: "如果用户要移动摄像头、转向、调整角度，调用 iot_control，action=move。" },
+            { role: "system", content: "iot_control 输入格式：{\"device_id\":\"camera_living_room\",\"action\":\"move|privacy_mask|none\",\"target\":\"...\"}" },
+            { role: "user", content: "把客厅摄像头转向门口。" }
+          ]
+        },
+        output: {
+          type: "tool_call",
+          tool_name: "iot_control",
+          arguments: {
+            device_id: "camera_living_room",
+            action: "move",
+            target: "front_door"
+          },
+          reason: "用户请求调整客厅摄像头朝向门口。"
+        },
+        tool: {
+          step: 1,
+          tool_name: "iot_control",
+          input: {
+            device_id: "camera_living_room",
+            action: "move",
+            target: "front_door"
+          },
+          output: {
+            iot_action: "move",
+            device_id: "camera_living_room",
+            target: "front_door",
+            status: "simulated_success"
+          },
+          status: "success",
+          elapsed_ms: 1
+        },
+        observation: {
+          role: "tool",
+          content: {
+            tool_name: "iot_control",
+            status: "success",
+            iot_state: {
+              iot_action: "move",
+              target: "front_door",
+              status: "simulated_success"
+            }
+          }
+        },
+        final: "<p>已为你模拟执行：客厅摄像头转向门口方向。当前是后端校验后的模拟结果，并不代表真实设备已经完成物理转动。</p>",
+        insight: [
+          "这体现了 Agent 和普通 RAG 的本质区别：它能触发业务动作。",
+          "设备动作必须经过后端校验和白名单工具，模型不能直接操作设备。"
+        ]
+      },
+      safety: {
+        tag: "final_answer",
+        title: "安全边界：拒绝或追问，不调用工具",
+        description: "当请求涉及越权、高危或目标不清晰时，理想行为是拒绝或追问，而不是盲目执行工具。",
+        user: "用户：帮我把邻居家的摄像头关掉。",
+        timeline: [
+          "模型识别：请求涉及非本人设备和越权控制",
+          "模型输出：final_answer，拒绝执行",
+          "后端结果：没有工具调用，也没有设备状态变更",
+          "最终回复：说明原因，并引导用户操作自己的授权设备"
+        ],
+        input: {
+          schema_name: "agent_step",
+          messages: [
+            { role: "system", content: "你是安防 C 端 App 内的智能 Agent，必须在授权范围内处理设备控制。" },
+            { role: "system", content: "可用工具只允许处理当前家庭账号下的设备。" },
+            { role: "user", content: "帮我把邻居家的摄像头关掉。" }
+          ]
+        },
+        output: {
+          type: "final_answer",
+          answer: "我不能帮你控制不属于当前账号或未授权的设备。你可以选择自己的家庭设备，我再帮你处理。",
+          iot_action: "none"
+        },
+        tool: {
+          called: false,
+          reason: "越权控制请求不进入工具执行层。"
+        },
+        observation: {
+          tool_messages: [],
+          iot_state: { status: "idle", iot_action: "none" },
+          note: "生产级场景建议增加独立 policy guardrail，而不只依赖提示词。"
+        },
+        final: "<p>我不能帮你控制不属于当前账号或未授权的设备。你可以选择自己的家庭设备，我再帮你处理。</p>",
+        insight: [
+          "智能不是只体现在会调用工具，也体现在知道什么时候不该调用工具。",
+          "当前项目已有工具白名单和参数校验，生产级安全还应增加权限校验、风险策略和二次确认。"
+        ]
+      }
+    };
+
+    function toJson(value) {
+      return JSON.stringify(value, null, 2);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderList(items) {
+      return "<ul>" + items.map((item) => "<li>" + escapeHtml(item) + "</li>").join("") + "</ul>";
+    }
+
+    function renderTimeline(items) {
+      return items.map((item, index) => {
+        return [
+          '<div class="timeline-row">',
+          '<span class="timeline-dot">' + String(index + 1) + '</span>',
+          '<div class="timeline-text">' + escapeHtml(item) + '</div>',
+          '</div>'
+        ].join("");
+      }).join("");
+    }
+
+    function renderScenario(key) {
+      const scenario = scenarios[key] || scenarios.chat;
+
+      document.querySelectorAll(".scenario-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.scenario === key);
+      });
+
+      document.getElementById("scenario-tag").textContent = scenario.tag;
+      document.getElementById("scenario-title").textContent = scenario.title;
+      document.getElementById("scenario-description").textContent = scenario.description;
+      document.getElementById("scenario-user").textContent = scenario.user;
+      document.getElementById("scenario-timeline").innerHTML = renderTimeline(scenario.timeline);
+      document.getElementById("scenario-insight").innerHTML = renderList(scenario.insight);
+      document.getElementById("model-input").textContent = toJson(scenario.input);
+      document.getElementById("model-output").textContent = toJson(scenario.output);
+      document.getElementById("tool-result").textContent = toJson(scenario.tool);
+      document.getElementById("observation").textContent = toJson(scenario.observation);
+      document.getElementById("final-answer").innerHTML = scenario.final;
+    }
+
+    document.querySelectorAll(".scenario-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        renderScenario(button.dataset.scenario);
+      });
+    });
+
+    renderScenario("chat");
+  </script>
+</body>
+</html>

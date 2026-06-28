@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Loop 学习页 | 安防视频搜索 Agent</title>
+  <style>
+    :root {
+      --bg: #eef1f5;
+      --panel: #ffffff;
+      --panel-soft: #f7f8fa;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d7dce5;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --purple: #7c3aed;
+      --purple-soft: #ede9fe;
+      --orange: #ea580c;
+      --orange-soft: #ffedd5;
+      --green: #059669;
+      --green-soft: #d1fae5;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --gray-soft: #e5e7eb;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.12), transparent 30%),
+        radial-gradient(circle at 90% 5%, rgba(124, 58, 237, 0.10), transparent 32%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1380px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(215, 220, 229, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .sidebar h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .sidebar a:hover {
+      background: var(--panel-soft);
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .hero,
+    .section,
+    .checkpoint,
+    .console {
+      background: var(--panel);
+      border: 1px solid rgba(215, 220, 229, 0.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 34px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -100px;
+      top: -120px;
+      width: 320px;
+      height: 320px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(124, 58, 237, 0.14));
+      border-radius: 50%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel-soft);
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(32px, 4vw, 58px);
+      line-height: 1.06;
+      letter-spacing: -0.05em;
+    }
+
+    .hero p {
+      max-width: 840px;
+      margin: 0;
+      color: #3d475a;
+      font-size: 18px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .section {
+      margin-top: 24px;
+      padding: 28px;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .section h3 {
+      margin: 22px 0 10px;
+      font-size: 18px;
+    }
+
+    .section > p {
+      color: #3d475a;
+      margin-top: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3,
+    .card h4 {
+      margin-top: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .backend { background: var(--blue-soft); color: var(--blue); }
+    .model { background: var(--purple-soft); color: var(--purple); }
+    .tool { background: var(--orange-soft); color: var(--orange); }
+    .data { background: var(--green-soft); color: var(--green); }
+    .risk { background: var(--red-soft); color: var(--red); }
+    .test { background: var(--gray-soft); color: #344054; }
+
+    .diagram {
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+      min-width: 880px;
+    }
+
+    .flow-node {
+      position: relative;
+      min-height: 116px;
+      padding: 16px;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .flow-node::after {
+      content: "→";
+      position: absolute;
+      top: 42%;
+      right: -17px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 20px;
+      z-index: 2;
+    }
+
+    .flow-node:last-child::after {
+      content: "";
+    }
+
+    .flow-node strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .flow-node small {
+      display: block;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dep-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 14px;
+      min-width: 940px;
+    }
+
+    .dep-node {
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 14px;
+    }
+
+    .dep-node code {
+      display: block;
+      margin-top: 8px;
+      color: #475467;
+      white-space: normal;
+    }
+
+    .loop-svg {
+      width: 100%;
+      min-width: 760px;
+      height: 470px;
+    }
+
+    .module-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .module-button {
+      text-align: left;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      font: inherit;
+      color: inherit;
+    }
+
+    .module-button:hover,
+    .module-button.active {
+      transform: translateY(-2px);
+      border-color: rgba(37, 99, 235, 0.55);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+    }
+
+    .detail-panel {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 13px;
+      background: #fff;
+      color: #344054;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 12px 0 0;
+      padding: 16px;
+      border-radius: 16px;
+      background: #101828;
+      color: #e5e7eb;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.92em;
+    }
+
+    .inline-code {
+      padding: 2px 6px;
+      border-radius: 7px;
+      background: #edf2f7;
+      color: #1f2937;
+    }
+
+    .reading-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .reading-item {
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .reading-item strong {
+      display: block;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    details + details {
+      margin-top: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      background: #f3f4f6;
+      font-weight: 700;
+    }
+
+    details > div {
+      padding: 14px 16px 16px;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+    }
+
+    .checklist label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .checklist input {
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f4f6;
+      color: #344054;
+      font-size: 13px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .callout {
+      border-left: 4px solid var(--blue);
+      background: #f8fbff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .warning {
+      border-left-color: var(--orange);
+      background: #fff7ed;
+    }
+
+    .success {
+      border-left-color: var(--green);
+      background: #ecfdf5;
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding: 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+        width: min(100% - 24px, 960px);
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .grid-2,
+      .grid-3,
+      .module-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .reading-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-label="页面导航">
+      <h2>学习导航</h2>
+      <a href="#overview">1. 学习目标</a>
+      <a href="#map">2. 项目架构图</a>
+      <a href="#dependency">3. 模块依赖图</a>
+      <a href="#loop">4. Agent Loop 数据流</a>
+      <a href="#modules">5. 点击式模块说明</a>
+      <a href="#codewalk">6. 代码走读</a>
+      <a href="#paths">7. 三条运行路径</a>
+      <a href="#debug">8. 调试观察点</a>
+      <a href="#practice">9. 动手练习</a>
+      <a href="#modify">10. 如何定制修改</a>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="top">
+        <div class="hero-content">
+          <span class="eyebrow">Security Agent · Agent Loop Deep Dive</span>
+          <h1>从一次聊天请求看懂 Agent Loop</h1>
+          <p>
+            这个页面用真实代码解释本项目的 Agent Loop：模型只负责做 JSON 决策，后端负责校验、执行工具、把工具结果写回上下文，再让模型基于观察结果继续决策。
+            你可以把它理解成一个安防调度台：模型是调度员，工具是摄像头、搜索系统和联网检索，后端循环负责把每一步记录清楚。
+          </p>
+          <div class="chips">
+            <span class="chip">✅ 当前阶段：先理解，再修改</span>
+            <span class="chip">入口：<code>/api/chat</code></span>
+            <span class="chip">核心文件：<code>backend/app/agent/loop.py</code></span>
+            <span class="chip">最大循环步数：<code>max_steps = 3</code></span>
+            <a class="chip" href="./agent_loop_learning.html" download>下载本页 HTML</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="overview">
+        <h2>1. 学习目标</h2>
+        <p>
+          这一页不是泛泛讲 Agent，而是把本项目里一次请求从前端/API 到 AgentLoop、模型、工具、最终响应的路径拆开。
+          学完后，你应该能独立回答：模型何时直接回答？何时调用工具？工具结果如何进入下一轮模型输入？前端看到的结构化结果从哪里来？
+        </p>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <span class="tag backend">先跑通</span>
+            <h3>最小成功路径</h3>
+            <p>先用测试跑通两个基础分支：直接 <code>final_answer</code>，以及 <code>tool_call → final_answer</code>。</p>
+          </div>
+          <div class="card">
+            <span class="tag data">后理解</span>
+            <h3>围绕数据结构理解</h3>
+            <p>重点看 <code>ChatMessage</code>、<code>AgentToolCall</code>、<code>ToolEvent</code>、<code>ChatResponse</code> 这些 Pydantic schema。</p>
+          </div>
+          <div class="card">
+            <span class="tag tool">再修改</span>
+            <h3>从工具扩展开始</h3>
+            <p>如果以后要加新能力，通常从 schema、prompt、tool、registry、测试五个位置下手。</p>
+          </div>
+        </div>
+
+        <details>
+          <summary>查看方式和本地路径</summary>
+          <div>
+            <p>在项目根目录执行下面命令即可用默认浏览器打开：</p>
+            <pre><code>open docs/agent_loop_learning.html</code></pre>
+            <p>如果你想从源码跳转，建议用 IDE 打开项目，再对照页面中的文件路径搜索对应行号。</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="section" id="map">
+        <h2>2. 项目架构图</h2>
+        <p>
+          先看全局：前端只管发消息和展示结构化结果；后端 API 创建 AgentLoop；AgentLoop 调模型拿 JSON；如果 JSON 是工具调用，就进入 ToolRegistry；工具结果再回填给模型。
+        </p>
+
+        <div class="diagram" aria-label="项目架构图">
+          <div class="flow-row">
+            <div class="flow-node" style="border-color: var(--blue); background: var(--blue-soft);">
+              <strong>React 前端</strong>
+              <small><code>frontend/src/App.tsx</code><br>聊天输入、IoT 面板、工具轨迹展示</small>
+            </div>
+            <div class="flow-node" style="border-color: var(--blue);">
+              <strong>FastAPI 入口</strong>
+              <small><code>POST /api/chat</code><br><a href="../backend/app/api/chat.py#L13-L26">chat.py:13-26</a></small>
+            </div>
+            <div class="flow-node" style="border-color: var(--green); background: var(--green-soft);">
+              <strong>会话历史</strong>
+              <small><code>session_store</code><br>读取历史，响应后保存 user/assistant</small>
+            </div>
+            <div class="flow-node" style="border-color: var(--purple); background: var(--purple-soft);">
+              <strong>AgentLoop</strong>
+              <small><code>loop.run()</code><br>最多 3 次模型决策</small>
+            </div>
+            <div class="flow-node" style="border-color: var(--orange); background: var(--orange-soft);">
+              <strong>工具执行层</strong>
+              <small><code>iot_control</code><br><code>video_search</code><br><code>web_search</code></small>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>核心边界：</strong>
+          模型不会直接控制摄像头，也不会直接访问 VikingDB。模型只能输出形如
+          <code class="inline-code">{"type":"tool_call","tool_name":"iot_control","arguments":...}</code>
+          的 JSON；后端再用 Pydantic 和工具层完成校验与执行。
+        </div>
+      </section>
+
+      <section class="section" id="dependency">
+        <h2>3. 模块依赖图</h2>
+        <p>
+          下面这张图按代码依赖组织。理解依赖关系后，你改代码时就不容易“从工具层一路改到 API 层”。
+        </p>
+
+        <div class="diagram" aria-label="模块依赖图">
+          <div class="dep-grid">
+            <div class="dep-node">
+              <span class="tag backend">API</span>
+              <strong>backend/app/api/chat.py</strong>
+              <code>依赖 AgentLoop、ArkCLIModelClient、ToolRegistry、session_store</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag model">Loop</span>
+              <strong>backend/app/agent/loop.py</strong>
+              <code>依赖 prompts、schemas、tool_registry、ArkCLIError</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag data">Schemas</span>
+              <strong>backend/app/agent/schemas.py</strong>
+              <code>定义 ChatRequest、ChatResponse、ToolEvent、IotState 等契约</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag model">Model Adapter</span>
+              <strong>backend/app/model/ark_cli_client.py</strong>
+              <code>唯一 LLM 调用入口，把消息打包给 arkcli +chat</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag tool">ToolRegistry</span>
+              <strong>backend/app/agent/tool_registry.py</strong>
+              <code>根据 tool_name 找工具，统一返回 result + ToolEvent</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag tool">IoT Tool</span>
+              <strong>backend/app/tools/iot_control.py</strong>
+              <code>模拟摄像头移动和隐私遮蔽，产出 IotState</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag tool">Video Tool</span>
+              <strong>backend/app/tools/viking_video_search.py</strong>
+              <code>调用 VikingDB multi_modal search，产出 VideoSearchResult 列表</code>
+            </div>
+            <div class="dep-node">
+              <span class="tag tool">Web Tool</span>
+              <strong>backend/app/tools/web_search.py</strong>
+              <code>天气、DuckDuckGo、Bing fallback，结果写入 ToolEvent</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>一个容易忽略的点：</strong>
+          <code>web_search</code> 没有像 <code>iot_state</code> 或 <code>video_results</code> 那样单独挂到 <code>ChatResponse</code> 顶层。
+          它的结果主要通过 <code>tool_events</code> 和下一轮模型观察使用。
+        </div>
+      </section>
+
+      <section class="section" id="loop">
+        <h2>4. Agent Loop 数据流程图</h2>
+        <p>
+          这是核心循环。注意这里的“步数”是模型决策步：每一步模型输出要么是最终回答，要么是一次工具调用。
+        </p>
+
+        <div class="diagram" aria-label="Agent Loop 数据流程 SVG">
+          <svg class="loop-svg" viewBox="0 0 980 470" role="img" aria-label="Agent Loop 数据流程图">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#667085"></path>
+              </marker>
+              <style>
+                .box { fill: #fff; stroke: #d7dce5; stroke-width: 2; rx: 18; }
+                .box-blue { fill: #dbeafe; stroke: #2563eb; }
+                .box-purple { fill: #ede9fe; stroke: #7c3aed; }
+                .box-orange { fill: #ffedd5; stroke: #ea580c; }
+                .box-green { fill: #d1fae5; stroke: #059669; }
+                .label { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+                .small { font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475467; }
+                .edge { stroke: #667085; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+                .edge-dash { stroke-dasharray: 6 6; }
+              </style>
+            </defs>
+
+            <rect x="32" y="44" width="184" height="86" class="box box-blue"></rect>
+            <text x="56" y="79" class="label">1. 构造消息</text>
+            <text x="56" y="105" class="small">SYSTEM_PROMPT + TOOL_SPEC</text>
+            <text x="56" y="124" class="small">history + user_message</text>
+
+            <rect x="288" y="44" width="184" height="86" class="box box-purple"></rect>
+            <text x="314" y="79" class="label">2. 请求模型</text>
+            <text x="314" y="105" class="small">generate_json()</text>
+            <text x="314" y="124" class="small">schema_name=agent_step</text>
+
+            <rect x="544" y="44" width="184" height="86" class="box"></rect>
+            <text x="570" y="79" class="label">3. 分支判断</text>
+            <text x="570" y="105" class="small">type = final_answer</text>
+            <text x="570" y="124" class="small">或 tool_call</text>
+
+            <rect x="792" y="44" width="150" height="86" class="box box-green"></rect>
+            <text x="817" y="79" class="label">4A. 返回</text>
+            <text x="817" y="105" class="small">ChatResponse</text>
+            <text x="817" y="124" class="small">结束循环</text>
+
+            <rect x="544" y="224" width="184" height="92" class="box box-orange"></rect>
+            <text x="570" y="259" class="label">4B. 执行工具</text>
+            <text x="570" y="285" class="small">ToolRegistry.run()</text>
+            <text x="570" y="304" class="small">result + ToolEvent</text>
+
+            <rect x="288" y="224" width="184" height="92" class="box box-green"></rect>
+            <text x="314" y="259" class="label">5. 抽取状态</text>
+            <text x="314" y="285" class="small">IotState</text>
+            <text x="314" y="304" class="small">VideoSearchResult[]</text>
+
+            <rect x="32" y="224" width="184" height="92" class="box box-blue"></rect>
+            <text x="58" y="259" class="label">6. 回填观察</text>
+            <text x="58" y="285" class="small">assistant tool_call</text>
+            <text x="58" y="304" class="small">tool observation</text>
+
+            <rect x="288" y="374" width="392" height="58" class="box"></rect>
+            <text x="318" y="409" class="label">最多重复 3 步；仍无 final_answer 则返回兜底文案</text>
+
+            <path d="M216 87 L288 87" class="edge"></path>
+            <path d="M472 87 L544 87" class="edge"></path>
+            <path d="M728 87 L792 87" class="edge"></path>
+            <path d="M636 130 L636 224" class="edge"></path>
+            <path d="M544 270 L472 270" class="edge"></path>
+            <path d="M288 270 L216 270" class="edge"></path>
+            <path d="M124 224 C124 170 188 160 288 112" class="edge edge-dash"></path>
+            <path d="M124 316 C160 366 228 400 288 403" class="edge edge-dash"></path>
+            <path d="M636 316 C650 352 670 368 680 398" class="edge edge-dash"></path>
+          </svg>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="tag model">模型输出约束</span>
+            <p>
+              模型必须只输出 JSON。后端用 <code>raw_step.get("type")</code> 区分
+              <code>final_answer</code> 和 <code>tool_call</code>。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag data">观察回填机制</span>
+            <p>
+              工具执行后，Loop 会追加两条消息：一条 assistant 记录刚才的 tool_call，一条 tool 记录工具结果。下一次模型调用能看到这些观察。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="modules">
+        <h2>5. 点击式模块说明</h2>
+        <p>点击模块卡片，看它在 Agent Loop 里承担什么职责、主要文件在哪里、学习时该看什么。</p>
+
+        <div class="module-buttons">
+          <button class="module-button active" data-detail="api">
+            <span class="tag backend">API</span>
+            <strong>FastAPI Chat Endpoint</strong>
+            <p class="muted">请求进入系统的门口。</p>
+          </button>
+          <button class="module-button" data-detail="loop">
+            <span class="tag model">Loop</span>
+            <strong>AgentLoop</strong>
+            <p class="muted">决策循环的主控。</p>
+          </button>
+          <button class="module-button" data-detail="model">
+            <span class="tag model">Model</span>
+            <strong>ArkCLIModelClient</strong>
+            <p class="muted">统一模型适配层。</p>
+          </button>
+          <button class="module-button" data-detail="registry">
+            <span class="tag tool">Registry</span>
+            <strong>ToolRegistry</strong>
+            <p class="muted">工具分发表。</p>
+          </button>
+          <button class="module-button" data-detail="tools">
+            <span class="tag tool">Tools</span>
+            <strong>IoT / Web / Video</strong>
+            <p class="muted">真正执行外部能力。</p>
+          </button>
+          <button class="module-button" data-detail="schemas">
+            <span class="tag data">Schemas</span>
+            <strong>Pydantic Models</strong>
+            <p class="muted">前后端和工具之间的契约。</p>
+          </button>
+        </div>
+
+        <div class="detail-panel" id="module-detail">
+          <h3>FastAPI Chat Endpoint</h3>
+          <p>
+            文件：<a href="../backend/app/api/chat.py#L13-L36">backend/app/api/chat.py:13-36</a>。
+            它做四件事：确认 conversation_id、读取历史、创建 AgentLoop、把用户和助手消息写回 session_store。
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="codewalk">
+        <h2>6. 代码走读</h2>
+        <p>
+          建议按下面顺序读，不要一开始就跳进工具实现细节。先抓住“循环骨架”，再看工具。
+        </p>
+
+        <div class="reading-list">
+          <div class="reading-item">
+            <div>
+              <span class="tag backend">入口</span>
+              <strong><a href="../backend/app/api/chat.py#L13-L36">chat.py:13-36</a></strong>
+            </div>
+            <div>
+              <p>API 层不是 Agent，它只负责把 HTTP 请求变成一次 <code>loop.run()</code> 调用，并在响应后保存会话历史。</p>
+              <pre><code>loop = AgentLoop(
+    model_client=ArkCLIModelClient(),
+    tool_registry=ToolRegistry(),
+)
+response = loop.run(conversation_id, history, request.message)</code></pre>
+            </div>
+          </div>
+
+          <div class="reading-item">
+            <div>
+              <span class="tag model">循环骨架</span>
+              <strong><a href="../backend/app/agent/loop.py#L35-L99">loop.py:35-99</a></strong>
+            </div>
+            <div>
+              <p>这里是最重要的代码：初始化状态，最多循环 3 次，每次让模型输出 JSON，再按 <code>type</code> 分支。</p>
+              <pre><code>for step in range(1, self.max_steps + 1):
+    raw_step = self.model_client.generate_json(messages, schema_name="agent_step")
+    if raw_step.get("type") == "final_answer":
+        return ChatResponse(...)
+    if raw_step.get("type") == "tool_call":
+        result, event = self.tool_registry.run(...)</code></pre>
+            </div>
+          </div>
+
+          <div class="reading-item">
+            <div>
+              <span class="tag data">消息构造</span>
+              <strong><a href="../backend/app/agent/loop.py#L119-L130">loop.py:119-130</a></strong>
+            </div>
+            <div>
+              <p>模型看到的第一版上下文包含两条 system 消息：角色说明和工具说明，然后才是历史对话和当前用户消息。</p>
+              <pre><code>messages = [
+    ChatMessage(role="system", content=SYSTEM_PROMPT),
+    ChatMessage(role="system", content=TOOL_SPEC),
+]
+messages.extend(history)
+messages.append(ChatMessage(role="user", content=user_message))</code></pre>
+            </div>
+          </div>
+
+          <div class="reading-item">
+            <div>
+              <span class="tag tool">工具观察</span>
+              <strong><a href="../backend/app/agent/loop.py#L132-L157">loop.py:132-157</a></strong>
+            </div>
+            <div>
+              <p>工具调用后，Loop 把“模型刚刚想调用什么”和“工具实际返回什么”都写回消息列表，这是下一轮模型能基于工具结果回答的关键。</p>
+              <pre><code>messages.append(ChatMessage(role="assistant", content=tool_call_json))
+messages.append(ChatMessage(role="tool", content={
+    "tool_name": tool_call.tool_name,
+    "status": event.status,
+    "result": result,
+    "event": event,
+}))</code></pre>
+            </div>
+          </div>
+
+          <div class="reading-item">
+            <div>
+              <span class="tag model">模型适配</span>
+              <strong><a href="../backend/app/model/ark_cli_client.py#L38-L126">ark_cli_client.py:38-126</a></strong>
+            </div>
+            <div>
+              <p>所有 LLM 调用统一走 Ark CLI。它把 messages 打包成 JSON prompt，调用 <code>arkcli +chat</code>，再解析模型输出 JSON。</p>
+              <pre><code>prompt = self._format_messages(messages, schema_name)
+raw = self._run_cli(prompt)
+return self._parse_json(raw)</code></pre>
+            </div>
+          </div>
+
+          <div class="reading-item">
+            <div>
+              <span class="tag data">契约模型</span>
+              <strong><a href="../backend/app/agent/schemas.py#L16-L76">schemas.py:16-76</a></strong>
+            </div>
+            <div>
+              <p><code>AgentToolCall</code>、<code>AgentFinalAnswer</code>、<code>ToolEvent</code>、<code>ChatResponse</code> 是整个循环的稳定接口。读懂这些，读工具实现会轻很多。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="paths">
+        <h2>7. 三条运行路径</h2>
+        <p>下面用 Tab 对比三类请求。先看“模型直接回答”，再看“IoT 工具”，最后看“视频搜索工具”。</p>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab-target="direct">路径 A：闲聊直接回答</button>
+          <button class="tab" data-tab-target="iot">路径 B：IoT 控制</button>
+          <button class="tab" data-tab-target="video">路径 C：视频搜索</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-direct">
+          <div class="card">
+            <h3>路径 A：用户说“你好”</h3>
+            <p>模型第一次输出 <code>final_answer</code>，循环直接返回，不调用任何工具。</p>
+            <pre><code>{
+  "type": "final_answer",
+  "answer": "你好，我可以帮你查看监控或控制摄像头。",
+  "iot_action": "none"
+}</code></pre>
+            <p>测试证据：<a href="../backend/tests/test_agent_loop.py#L100-L129">test_agent_loop.py:100-129</a> 验证 <code>registry.calls == []</code>。</p>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-iot">
+          <div class="card">
+            <h3>路径 B：用户说“把摄像头转向门口”</h3>
+            <p>模型第一步输出 <code>tool_call</code>，ToolRegistry 调用 <code>iot_control</code>，Loop 把工具观察写回 messages，模型第二步再输出最终回答。</p>
+            <pre><code>// 第 1 步：模型决策调用工具
+{
+  "type": "tool_call",
+  "tool_name": "iot_control",
+  "arguments": {
+    "device_id": "camera_living_room",
+    "action": "move",
+    "target": "front_door"
+  },
+  "reason": "用户要求摄像头转向门口"
+}
+
+// 第 2 步：模型看到工具结果后最终回答
+{
+  "type": "final_answer",
+  "answer": "摄像头已转向门口。",
+  "iot_action": "move"
+}</code></pre>
+            <p>测试证据：<a href="../backend/tests/test_agent_loop.py#L50-L98">test_agent_loop.py:50-98</a> 验证模型被调用 2 次，第二次 messages 内包含 <code>assistant</code> 和 <code>tool</code>。</p>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-video">
+          <div class="card">
+            <h3>路径 C：用户说“找一下有人经过门口的视频”</h3>
+            <p>模型应输出 <code>video_search</code> 工具调用，VikingDB 工具返回 <code>VideoSearchResult[]</code>，Loop 把它放到 <code>video_results</code> 顶层，前端可以直接展示视频搜索结果。</p>
+            <pre><code>{
+  "type": "tool_call",
+  "tool_name": "video_search",
+  "arguments": {
+    "query": "有人经过门口",
+    "limit": 10
+  },
+  "reason": "用户要查监控视频内容"
+}</code></pre>
+            <p>
+              相关实现：
+              <a href="../backend/app/tools/viking_video_search.py#L12-L18">搜索常量</a>、
+              <a href="../backend/app/tools/viking_video_search.py#L48-L83">请求体与签名请求</a>、
+              <a href="../backend/app/tools/viking_video_search.py#L116-L153">结果解析</a>。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="debug">
+        <h2>8. 调试观察点</h2>
+        <p>
+          Agent Loop 调试的关键是“每一步输入输出都要能解释”。下面这些点最适合加日志或下断点。
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>你想确认什么</th>
+                <th>看哪里</th>
+                <th>正常现象</th>
+                <th>异常时怎么想</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>API 有没有把历史传进 Loop</td>
+                <td><a href="../backend/app/api/chat.py#L15-L25">chat.py:15-25</a></td>
+                <td><code>history = session_store.list_messages(conversation_id)</code></td>
+                <td>多轮对话失效时，先看 conversation_id 是否复用。</td>
+              </tr>
+              <tr>
+                <td>模型收到哪些 messages</td>
+                <td><a href="../backend/app/agent/loop.py#L119-L130">loop.py:119-130</a></td>
+                <td>system prompt、tool spec、history、当前 user 依次出现。</td>
+                <td>如果模型乱调用工具，先看 TOOL_SPEC 是否描述清楚。</td>
+              </tr>
+              <tr>
+                <td>模型输出 JSON 是否可解析</td>
+                <td><a href="../backend/app/model/ark_cli_client.py#L108-L126">ark_cli_client.py:108-126</a></td>
+                <td>顶层必须是 dict，且后续 type 是 <code>final_answer</code> 或 <code>tool_call</code>。</td>
+                <td>如果返回 Markdown 或自然语言，会变成 <code>MODEL_JSON_PARSE_FAILED</code>。</td>
+              </tr>
+              <tr>
+                <td>工具有没有被调用</td>
+                <td><a href="../backend/app/agent/tool_registry.py#L18-L46">tool_registry.py:18-46</a></td>
+                <td><code>tool.run(arguments, step)</code> 返回 result 和 ToolEvent。</td>
+                <td>unknown tool 会得到 failed event；要检查 prompt 和 ToolName 枚举是否同步。</td>
+              </tr>
+              <tr>
+                <td>工具结果有没有进入下一轮模型</td>
+                <td><a href="../backend/app/agent/loop.py#L132-L157">loop.py:132-157</a></td>
+                <td>messages 新增 assistant tool_call 和 tool observation。</td>
+                <td>模型最终回答没引用工具结果时，检查 observation 是否包含足够字段。</td>
+              </tr>
+              <tr>
+                <td>前端能不能拿到结构化结果</td>
+                <td><a href="../backend/app/agent/schemas.py#L70-L76">schemas.py:70-76</a></td>
+                <td><code>iot_state</code>、<code>video_results</code>、<code>tool_events</code> 出现在 ChatResponse。</td>
+                <td>新工具若要前端专门展示，通常需要新增 response 字段和前端类型。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details>
+          <summary>常见错误：为什么工具执行失败后 Loop 没有立刻报错？</summary>
+          <div>
+            <p>
+              当前设计是：ToolRegistry 捕获工具异常，返回 <code>status="failed"</code> 的 ToolEvent。
+              AgentLoop 仍会把失败观察写回 messages，让模型下一步可以给用户一个可读解释。
+              这比直接抛 500 更适合 Agent 产品，但也要求工具输出里的错误信息足够清楚。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>常见错误：为什么最多 3 步后会返回兜底文案？</summary>
+          <div>
+            <p>
+              <code>AgentLoop.max_steps = 3</code> 是为了避免模型反复调用工具不结束。
+              如果 3 次模型决策都没有输出 <code>final_answer</code>，代码会返回“还没有得到稳定的最终回答”的兜底文案。
+              位置：<a href="../backend/app/agent/loop.py#L90-L99">loop.py:90-99</a>。
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section class="section" id="practice">
+        <h2>9. 动手练习</h2>
+        <p>这一节用于“先跑通”。建议你按顺序打勾，浏览器会记住你的进度。</p>
+
+        <div class="checklist">
+          <label><input type="checkbox" data-save="p1"> <span>✅ 我已经读过 <code>backend/app/agent/loop.py</code> 的 <code>run()</code> 方法。</span></label>
+          <label><input type="checkbox" data-save="p2"> <span>✅ 我知道 <code>final_answer</code> 会直接结束循环。</span></label>
+          <label><input type="checkbox" data-save="p3"> <span>✅ 我知道 <code>tool_call</code> 会走 <code>ToolRegistry.run()</code>。</span></label>
+          <label><input type="checkbox" data-save="p4"> <span>✅ 我已经跑过 Agent Loop 单测。</span></label>
+          <label><input type="checkbox" data-save="p5"> <span>✅ 我能解释 <code>ToolEvent</code> 在调试里的作用。</span></label>
+        </div>
+
+        <h3>最小验证命令</h3>
+        <p>从项目根目录执行：</p>
+        <pre><code>cd backend
+PYTHONPATH=. python3 -m pytest tests/test_agent_loop.py -v</code></pre>
+
+        <h3>如果要跑完整后端测试</h3>
+        <pre><code>cd backend
+PYTHONPATH=. python3 -m pytest tests -v</code></pre>
+
+        <h3>如果要手动请求 API</h3>
+        <p>先启动后端：</p>
+        <pre><code>cd backend
+PYTHONPATH=. python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000</code></pre>
+        <p>另开终端请求：</p>
+        <pre><code>curl -s http://127.0.0.1:8000/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"conversation_id":"conv_learning","message":"把摄像头转向门口"}' | python3 -m json.tool</code></pre>
+
+        <div class="callout warning">
+          <strong>注意：</strong>
+          手动请求真实 API 会走 Ark CLI。若本机没有安装或登录 <code>arkcli</code>，响应会是可读的模型错误兜底。
+          学习 Loop 逻辑时，优先跑单测，因为它用 FakeModelClient，不依赖真实模型。
+        </div>
+      </section>
+
+      <section class="section" id="modify">
+        <h2>10. 如何定制修改</h2>
+        <p>
+          真要改 Agent Loop，不建议一上来重写循环。先判断你的需求属于哪一层。
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="tag data">只改模型行为</span>
+            <h3>改 prompts</h3>
+            <p>
+              例如让模型更积极使用视频搜索，优先看
+              <a href="../backend/app/agent/prompts.py">backend/app/agent/prompts.py</a>。
+              这种修改风险较低，但要用测试约束输出 JSON。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag tool">新增工具</span>
+            <h3>改 schema + tool + registry + prompt</h3>
+            <p>
+              新增工具时，要同步 <code>ToolName</code>、<code>TOOL_SPEC</code>、工具类、<code>ToolRegistry.tools</code>，并补一个 Agent Loop 测试。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag backend">改循环策略</span>
+            <h3>谨慎改 AgentLoop</h3>
+            <p>
+              例如允许多工具并行、调整最大步数、失败后提前终止，都属于循环策略修改。改前先写清楚状态变化和测试用例。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag model">替换模型入口</span>
+            <h3>保持 ModelClient 接口</h3>
+            <p>
+              业务代码只依赖 <code>generate_json(messages, schema_name)</code>。如果替换模型，尽量保持这个接口，避免 AgentLoop 感知具体模型 SDK。
+            </p>
+          </div>
+        </div>
+
+        <h3>新增工具的最小清单</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>步骤</th>
+                <th>文件</th>
+                <th>你要做什么</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><code>schemas.py</code></td>
+                <td>把新工具名加入 <code>ToolName</code>，必要时新增结果 schema。</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><code>prompts.py</code></td>
+                <td>告诉模型什么时候调用该工具，以及 arguments JSON 格式。</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><code>backend/app/tools/*.py</code></td>
+                <td>实现工具类，保持 <code>run(arguments, step) -> (result, ToolEvent)</code>。</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><code>tool_registry.py</code></td>
+                <td>把工具实例加入 <code>self.tools</code>。</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><code>tests/test_agent_loop.py</code></td>
+                <td>用 FakeModelClient 断言新工具会被调用，工具观察会进入第二轮模型输入。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <h2>检查点测试</h2>
+        <p>先自己回答，再展开答案。你能说清这几个问题，就已经掌握 Agent Loop 主线了。</p>
+
+        <details>
+          <summary>1. 为什么模型输出工具调用后，还要再调用一次模型？</summary>
+          <div>
+            因为工具只返回结构化观察，最终给用户的话术仍由模型生成。Loop 把 tool_call 和 tool observation 追加到 messages，下一轮模型基于观察生成 <code>final_answer</code>。
+          </div>
+        </details>
+
+        <details>
+          <summary>2. <code>iot_state</code> 和 <code>tool_events</code> 的区别是什么？</summary>
+          <div>
+            <code>iot_state</code> 是前端业务面板要消费的当前摄像头控制状态；<code>tool_events</code> 是调试轨迹，记录第几步调用了什么工具、输入输出和耗时。
+          </div>
+        </details>
+
+        <details>
+          <summary>3. 如果模型输出了未知工具名，会发生什么？</summary>
+          <div>
+            <code>ToolRegistry</code> 找不到工具，会返回 failed ToolEvent。当前实现为了满足 <code>ToolName</code> 枚举，把 event 的 <code>tool_name</code> 标成 <code>final_answer</code>，输出里会带 <code>unknown tool</code> 错误。
+          </div>
+        </details>
+
+        <details>
+          <summary>4. 为什么学习时建议先跑 <code>tests/test_agent_loop.py</code>？</summary>
+          <div>
+            因为这个测试用 FakeModelClient 和 FakeToolRegistry，完全不依赖 Ark CLI、网络搜索或 VikingDB。它隔离了 Agent Loop 本身，适合先理解控制流。
+          </div>
+        </details>
+      </section>
+
+      <div class="footer">
+        本页生成于本地项目：<code>video_search_agent</code>。建议学习顺序：运行单测 → 阅读 loop.py → 对照工具轨迹 → 再尝试新增一个小工具。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const moduleDetails = {
+      api: {
+        title: "FastAPI Chat Endpoint",
+        body: "文件：<a href='../backend/app/api/chat.py#L13-L36'>backend/app/api/chat.py:13-36</a>。它做四件事：确认 conversation_id、读取历史、创建 AgentLoop、把用户和助手消息写回 session_store。它不决定是否调用工具。"
+      },
+      loop: {
+        title: "AgentLoop",
+        body: "文件：<a href='../backend/app/agent/loop.py#L35-L99'>backend/app/agent/loop.py:35-99</a>。这里是主循环：构造 messages，请求模型 JSON，判断 final_answer 或 tool_call，执行工具，把观察写回上下文，最多 3 步。"
+      },
+      model: {
+        title: "ArkCLIModelClient",
+        body: "文件：<a href='../backend/app/model/ark_cli_client.py#L38-L126'>backend/app/model/ark_cli_client.py:38-126</a>。它把 ChatMessage 列表序列化为 JSON prompt，调用 arkcli +chat，并保证返回顶层 JSON object。"
+      },
+      registry: {
+        title: "ToolRegistry",
+        body: "文件：<a href='../backend/app/agent/tool_registry.py#L10-L58'>backend/app/agent/tool_registry.py:10-58</a>。它是工具分发表，也是异常保护层。任何工具都要返回 result 和 ToolEvent，方便前端展示轨迹。"
+      },
+      tools: {
+        title: "Tools",
+        body: "工具文件位于 <code>backend/app/tools/</code>。<code>iot_control</code> 返回 IotState，<code>video_search</code> 返回 VideoSearchResult 列表，<code>web_search</code> 返回搜索结果字典并写入 ToolEvent。"
+      },
+      schemas: {
+        title: "Pydantic Schemas",
+        body: "文件：<a href='../backend/app/agent/schemas.py#L16-L76'>backend/app/agent/schemas.py:16-76</a>。它们是 Agent Loop 的合同：模型输出、工具事件、业务状态、API 响应都在这里收口。"
+      }
+    };
+
+    const detailPanel = document.getElementById("module-detail");
+    document.querySelectorAll("[data-detail]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-detail]").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        const detail = moduleDetails[button.dataset.detail];
+        detailPanel.innerHTML = `<h3>${detail.title}</h3><p>${detail.body}</p>`;
+      });
+    });
+
+    document.querySelectorAll("[data-tab-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.tabTarget;
+        document.querySelectorAll("[data-tab-target]").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(`tab-${target}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll("[data-save]").forEach((checkbox) => {
+      const key = `agent-loop-learning-${checkbox.dataset.save}`;
+      checkbox.checked = localStorage.getItem(key) === "true";
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(key, checkbox.checked ? "true" : "false");
+      });
+    });
+  </script>
+</body>
+</html>

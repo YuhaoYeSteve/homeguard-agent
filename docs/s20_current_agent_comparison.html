@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>S20 Comprehensive Agent 与 HomeGuard Agent 实现对比</title>
+  <style type="text/css">
+    :root {
+      --bg: #eef2f7;
+      --paper: #ffffff;
+      --meta: #f4f6f9;
+      --meta-strong: #e8edf5;
+      --ink: #141b2d;
+      --muted: #667085;
+      --line: #d7deea;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --purple: #7c3aed;
+      --purple-soft: #ede9fe;
+      --green: #059669;
+      --green-soft: #d1fae5;
+      --orange: #ea580c;
+      --orange-soft: #ffedd5;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --code: #111827;
+      --code-ink: #e5e7eb;
+      --shadow: 0 18px 48px rgba(15, 23, 42, 0.10);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.13), transparent 34%),
+        radial-gradient(circle at 88% 6%, rgba(124, 58, 237, 0.12), transparent 32%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.62;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: var(--mono); }
+
+    .shell {
+      width: min(1380px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(14px);
+    }
+
+    .nav h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav a {
+      display: block;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: #344054;
+      font-size: 14px;
+    }
+
+    .nav a:hover {
+      background: var(--meta);
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    .main { min-width: 0; }
+    .hero,
+    .section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 36px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      top: -130px;
+      width: 370px;
+      height: 370px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .16), rgba(124, 58, 237, .12));
+    }
+
+    .hero > * { position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--meta);
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 4.8vw, 64px);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 27px;
+      letter-spacing: -.03em;
+    }
+
+    h3 { margin: 22px 0 10px; font-size: 19px; }
+    p { color: #3d475a; }
+    .hero p { max-width: 900px; margin: 0; font-size: 18px; }
+    .section { margin-top: 24px; padding: 28px; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--meta);
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--meta);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3,
+    .card h4 { margin-top: 0; }
+    .muted { color: var(--muted); }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .tag-blue { background: var(--blue-soft); color: var(--blue); }
+    .tag-purple { background: var(--purple-soft); color: var(--purple); }
+    .tag-green { background: var(--green-soft); color: var(--green); }
+    .tag-orange { background: var(--orange-soft); color: var(--orange); }
+    .tag-red { background: var(--red-soft); color: var(--red); }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr .8fr .8fr;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .72);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .status strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .status span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .summary-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .agent-card {
+      background: linear-gradient(180deg, #fff, #f8fafc);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .agent-card ul,
+    .compact-list {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: #3d475a;
+    }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #f8fafc);
+      padding: 18px;
+      overflow-x: auto;
+    }
+
+    .flow {
+      min-width: 860px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .flow.flow-4 {
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+    }
+
+    .node {
+      position: relative;
+      min-height: 110px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .node::after {
+      content: "→";
+      position: absolute;
+      right: -15px;
+      top: 42%;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .node:last-child::after { content: ""; }
+    .node strong { display: block; margin-bottom: 8px; }
+    .node small { display: block; color: var(--muted); }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 980px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 15px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--meta-strong);
+      color: #344054;
+      font-size: 13px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { width: 160px; font-weight: 800; color: #1f2937; }
+
+    .score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 74px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .detail-panel {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--meta);
+      overflow: hidden;
+    }
+
+    .detail-toggle {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .detail-title {
+      display: block;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 800;
+      color: #344054;
+      background: var(--meta-strong);
+    }
+
+    .detail-body {
+      display: none;
+      padding: 14px 16px 16px;
+      color: #3d475a;
+    }
+
+    .detail-toggle:checked + .detail-title + .detail-body {
+      display: block;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 16px;
+      overflow-x: auto;
+      color: var(--code-ink);
+      background: var(--code);
+      border-radius: 16px;
+      font-family: var(--mono);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .evidence {
+      display: grid;
+      gap: 12px;
+    }
+
+    .evidence-row {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .evidence-row strong { color: #1f2937; }
+    .evidence-row span { color: #3d475a; }
+
+    .callout {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .warning {
+      border-color: #fed7aa;
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    .recommendation {
+      counter-reset: rec;
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .rec {
+      position: relative;
+      padding: 16px 16px 16px 54px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--meta);
+    }
+
+    .rec::before {
+      counter-increment: rec;
+      content: counter(rec);
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .rec h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+
+    .rec p {
+      margin: 0;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        display: block;
+        width: min(100% - 28px, 760px);
+      }
+      .nav {
+        position: static;
+        margin-bottom: 18px;
+      }
+      .grid-2,
+      .grid-3,
+      .summary-box,
+      .status-strip {
+        grid-template-columns: 1fr;
+      }
+      .evidence-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="nav">
+      <h2>Comparison</h2>
+      <a href="#readability">读取确认</a>
+      <a href="#positioning">定位差异</a>
+      <a href="#flow">循环结构</a>
+      <a href="#matrix">差异矩阵</a>
+      <a href="#evidence">代码证据</a>
+      <a href="#recommendations">借鉴建议</a>
+      <a href="#conclusion">结论</a>
+    </div>
+
+    <div class="main">
+      <div class="hero">
+        <span class="eyebrow">Agent 实现方式对比 · 2026-06-26</span>
+        <h1>S20 Comprehensive Agent vs HomeGuard Agent</h1>
+        <p>
+          这页对比的是 <code>shareAI-lab/learn-claude-code/s20_comprehensive</code> 里的教学型 Coding Agent harness，
+          和当前项目里的安防 C 端 App Agent。重点不是“谁更高级”，而是两者服务的目标不同：S20 是通用 coding agent 的全机制样板，
+          当前项目是受控业务 Agent 的产品化 MVP。
+        </p>
+        <div class="chips">
+          <span class="chip">已完整读取目标目录</span>
+          <span class="chip">核心源码 2123 行</span>
+          <span class="chip">本地项目为 FastAPI + React</span>
+          <span class="chip">对比维度 12 项</span>
+        </div>
+      </div>
+
+      <div id="readability" class="section">
+        <h2>读取确认</h2>
+        <p>
+          目标链接可以完整读取。验证方式不是只抓取 GitHub 网页，而是对仓库做了 sparse checkout，并只拉取
+          <code>s20_comprehensive</code> 目录。该目录共 7 个文件，核心实现文件 <code>code.py</code> 共 2123 行，中文说明
+          <code>README.md</code> 共 250 行。
+        </p>
+        <div class="status-strip">
+          <div class="status">
+            <strong>7</strong>
+            <span>目录内文件总数</span>
+          </div>
+          <div class="status">
+            <strong>2123</strong>
+            <span><code>code.py</code> 行数</span>
+          </div>
+          <div class="status">
+            <strong>250</strong>
+            <span><code>README.md</code> 行数</span>
+          </div>
+          <div class="status">
+            <strong>完整</strong>
+            <span>sparse checkout 成功</span>
+          </div>
+        </div>
+        <div class="detail-panel">
+          <input class="detail-toggle" type="checkbox" id="file-list-toggle">
+          <label class="detail-title" for="file-list-toggle">展开：读取到的目标目录文件清单</label>
+          <div class="detail-body">
+            <pre><code>s20_comprehensive/README.md
+s20_comprehensive/README.en.md
+s20_comprehensive/README.ja.md
+s20_comprehensive/code.py
+s20_comprehensive/images/system-architecture.svg
+s20_comprehensive/images/system-architecture.en.svg
+s20_comprehensive/images/system-architecture.ja.svg</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="positioning" class="section">
+        <h2>一句话定位</h2>
+        <div class="summary-box">
+          <div class="agent-card">
+            <span class="tag tag-purple">S20</span>
+            <h3>通用 Coding Agent Harness</h3>
+            <p>
+              S20 的核心目标是演示 Claude Code 类 agent 的完整外壳：工具、权限、hooks、任务、subagent、队友线程、
+              worktree、MCP、记忆、压缩、后台任务、cron 全部挂到一个循环上。
+            </p>
+            <ul>
+              <li>入口：命令行交互</li>
+              <li>核心：Anthropic native tool_use/tool_result 循环</li>
+              <li>能力：通用代码执行与协作机制</li>
+              <li>状态：本地文件、线程、消息总线</li>
+            </ul>
+          </div>
+          <div class="agent-card">
+            <span class="tag tag-blue">HomeGuard</span>
+            <h3>领域受控的安防 App Agent</h3>
+            <p>
+              当前项目的核心目标是给安防 C 端 App 提供多轮对话、联网搜索、VikingDB 视频检索和 IoT 模拟控制。
+              它刻意收窄工具边界，把模型输出限定为结构化 JSON，再由后端校验和执行。
+            </p>
+            <ul>
+              <li>入口：FastAPI <code>/api/chat</code> + React 页面</li>
+              <li>核心：Ark CLI/SDK 适配层 + JSON 决策循环</li>
+              <li>能力：业务工具，不开放 shell/file 写入</li>
+              <li>状态：进程内会话 + 前端结构化展示</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>关键判断：</strong>
+          S20 是“让模型操作开发环境”的 agent；当前项目是“让模型在安防业务边界内做路由与参数生成”的 agent。
+          因此 S20 的复杂度主要在 harness，当前项目的复杂度主要在业务工具、结构化响应和产品集成。
+        </div>
+      </div>
+
+      <div id="flow" class="section">
+        <h2>循环结构</h2>
+        <h3>S20 的循环：工具原生、动态、长循环</h3>
+        <div class="diagram">
+          <div class="flow">
+            <div class="node">
+              <strong>用户输入</strong>
+              <small>UserPromptSubmit hook、cron/background 注入</small>
+            </div>
+            <div class="node">
+              <strong>准备上下文</strong>
+              <small>memory、skills、MCP、压缩、transcript</small>
+            </div>
+            <div class="node">
+              <strong>LLM + tools</strong>
+              <small>Anthropic native tool schemas</small>
+            </div>
+            <div class="node">
+              <strong>执行 tool_use</strong>
+              <small>permission hook、handlers、MCP、background</small>
+            </div>
+            <div class="node">
+              <strong>tool_result 回填</strong>
+              <small>继续循环，直到没有 tool_use</small>
+            </div>
+          </div>
+        </div>
+
+        <h3>当前项目的循环：JSON 决策、业务受控、最多 3 步</h3>
+        <div class="diagram">
+          <div class="flow flow-4">
+            <div class="node">
+              <strong>API 请求</strong>
+              <small>读取 conversation_id 和历史消息</small>
+            </div>
+            <div class="node">
+              <strong>模型生成 JSON</strong>
+              <small><code>final_answer</code> 或 <code>tool_call</code></small>
+            </div>
+            <div class="node">
+              <strong>ToolRegistry 执行业务工具</strong>
+              <small>IoT、联网搜索、VikingDB 视频检索</small>
+            </div>
+            <div class="node">
+              <strong>结构化响应</strong>
+              <small>assistant_message、iot_state、video_results、tool_events</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="matrix" class="section">
+        <h2>差异矩阵</h2>
+        <p>
+          下面按实现维度展开。越靠前的差异越影响架构判断，越靠后的差异更多是工程成熟度和产品形态差异。
+        </p>
+        <div class="table-wrap">
+          <table summary="S20 Comprehensive Agent 与当前 HomeGuard Agent 的实现差异矩阵">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>S20 Comprehensive Agent</th>
+                <th>当前 HomeGuard Agent</th>
+                <th>影响</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>产品目标</td>
+                <td>教学型 coding agent，目标是把 Claude Code 类机制放进一个可运行 harness。</td>
+                <td>安防 C 端 App 的业务 Agent，目标是聊天、联网搜索、视频检索和模拟 IoT 控制。</td>
+                <td><span class="score">方向不同</span> S20 追求通用能力，当前项目追求业务闭环和可控输出。</td>
+              </tr>
+              <tr>
+                <td>模型协议</td>
+                <td>直接使用 Anthropic <code>messages.create(..., tools=...)</code>，模型返回原生 <code>tool_use</code> block。</td>
+                <td>通过 Ark CLI/SDK 让模型输出 JSON 对象：<code>final_answer</code> 或 <code>tool_call</code>。</td>
+                <td><span class="score">核心差异</span> S20 依赖模型供应商的工具协议；当前项目把工具协议做成业务 JSON 合约。</td>
+              </tr>
+              <tr>
+                <td>循环长度</td>
+                <td><code>while True</code> 循环，直到模型不再返回 <code>tool_use</code>。还有 max_tokens、reactive compact 等恢复路径。</td>
+                <td><code>AgentLoop.max_steps = 3</code>，三轮内必须得到最终回答，否则返回兜底文案。</td>
+                <td><span class="score">风险控制</span> 当前项目更适合 App 请求；S20 更适合长任务自动执行。</td>
+              </tr>
+              <tr>
+                <td>工具集合</td>
+                <td>内置 27 个工具：shell、文件、todo、task、cron、teammate、worktree、MCP 等。</td>
+                <td>3 个业务工具：<code>web_search</code>、<code>video_search</code>、<code>iot_control</code>。</td>
+                <td><span class="score">边界不同</span> 当前项目通过少量白名单工具降低安全和产品风险。</td>
+              </tr>
+              <tr>
+                <td>工具分发</td>
+                <td><code>assemble_tool_pool()</code> 每轮动态合并内置工具和已连接 MCP 工具。</td>
+                <td><code>ToolRegistry</code> 初始化时注册固定工具字典，运行期不动态扩展。</td>
+                <td><span class="score">扩展方式</span> S20 适合插件化；当前项目适合稳定业务 API。</td>
+              </tr>
+              <tr>
+                <td>安全模型</td>
+                <td>通过 <code>PreToolUse</code> hook 做权限判断，拦截危险 bash、越界写文件、破坏性 MCP 工具。</td>
+                <td>不暴露 shell/文件工具；通过 Pydantic schema、ToolName 枚举和工具内校验限制输入。</td>
+                <td><span class="score">安全重心</span> S20 是高权限工具前置审批；当前项目是能力白名单加参数校验。</td>
+              </tr>
+              <tr>
+                <td>Prompt 组装</td>
+                <td>每轮动态生成 system prompt，注入当前时间、skill catalog、memory、MCP、活跃 teammate。</td>
+                <td>静态 <code>SYSTEM_PROMPT</code> + <code>TOOL_SPEC</code>，每次请求固定拼接。</td>
+                <td><span class="score">上下文能力</span> 当前项目更稳定，但缺少动态能力描述和长期记忆注入。</td>
+              </tr>
+              <tr>
+                <td>记忆与状态</td>
+                <td>使用 <code>.memory</code>、<code>.tasks</code>、<code>.mailboxes</code>、<code>.scheduled_tasks.json</code> 等本地文件状态。</td>
+                <td>使用 <code>InMemorySessionStore</code> 保存 user/assistant 历史；工具观察只在一次 <code>run()</code> 内回填给模型。</td>
+                <td><span class="score">持久化差异</span> 当前项目重启会丢会话，且跨轮不会保留完整工具轨迹。</td>
+              </tr>
+              <tr>
+                <td>上下文压缩</td>
+                <td>包含 tool result budget、snip compact、micro compact、模型总结、prompt-too-long reactive compact。</td>
+                <td>暂无压缩管线；依赖短历史和最多 3 步控制上下文规模。</td>
+                <td><span class="score">长期会话</span> 如果未来支持长对话或多次视频检索，当前项目需要补上下文管理。</td>
+              </tr>
+              <tr>
+                <td>多 agent</td>
+                <td>有一次性 subagent 和持久 teammate 线程，通过 MessageBus、任务板和 plan approval 协作。</td>
+                <td>单 AgentLoop 同步处理单次请求，不做 subagent 分工。</td>
+                <td><span class="score">复杂度取舍</span> 当前业务场景暂时不需要 coding-agent 式协作。</td>
+              </tr>
+              <tr>
+                <td>错误恢复</td>
+                <td>处理 429、529、fallback model、max_tokens 升级、continuation、prompt too long 压缩重试。</td>
+                <td>Ark CLI/SDK 主要处理超时、认证过期、JSON 解析失败；ToolRegistry 捕获工具异常并返回 failed ToolEvent。</td>
+                <td><span class="score">鲁棒性</span> 当前项目在模型重试和 fallback 上还比较轻。</td>
+              </tr>
+              <tr>
+                <td>观测与 UI</td>
+                <td>以终端输出、hooks 日志和 transcript 文件为主。</td>
+                <td>后端返回 <code>ToolEvent</code>，前端 <code>ToolTrace</code> 折叠展示 input/output/status/耗时。</td>
+                <td><span class="score">产品体验</span> 当前项目更适合 C 端/调试页面；S20 更偏命令行工程师体验。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="evidence" class="section">
+        <h2>代码证据</h2>
+        <p>
+          这里列出影响结论的关键代码位置。S20 链接指向 GitHub 源码行；当前项目链接指向本机工作区文件。
+        </p>
+        <div class="evidence">
+          <div class="evidence-row">
+            <strong>S20 主循环</strong>
+            <span>
+              <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/s20_comprehensive/code.py#L1955-L2059" target="_blank" rel="noreferrer">code.py:1955-2059</a>
+              负责注入 cron/background、准备上下文、调用 LLM、执行 tool_use、追加 tool_result。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>S20 动态工具池</strong>
+            <span>
+              <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/s20_comprehensive/code.py#L1629-L1646" target="_blank" rel="noreferrer">code.py:1629-1646</a>
+              每轮合并 built-in tools 和 MCP tools；内置工具定义在
+              <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/s20_comprehensive/code.py#L1725-L1889" target="_blank" rel="noreferrer">code.py:1725-1889</a>。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>S20 权限与 hooks</strong>
+            <span>
+              <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/s20_comprehensive/code.py#L874-L960" target="_blank" rel="noreferrer">code.py:874-960</a>
+              定义 UserPromptSubmit、PreToolUse、PostToolUse、Stop hooks 和 permission hook。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>S20 上下文压缩</strong>
+            <span>
+              <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/s20_comprehensive/code.py#L1055-L1205" target="_blank" rel="noreferrer">code.py:1055-1205</a>
+              分层处理大工具输出、历史裁剪、模型总结和 reactive compact。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>当前 AgentLoop</strong>
+            <span>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/loop.py#L24-L81">backend/app/agent/loop.py:24-81</a>
+              体现最多 3 步、JSON 类型判断、业务工具执行和结构化响应。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>当前工具注册</strong>
+            <span>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/tool_registry.py#L10-L45">backend/app/agent/tool_registry.py:10-45</a>
+              固定注册 IoT、联网搜索、VikingDB 视频检索，并捕获工具异常。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>当前模型合约</strong>
+            <span>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/prompts.py#L1-L24">backend/app/agent/prompts.py:1-24</a>
+              明确要求模型只输出 JSON，并列出业务工具输入格式。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>当前 API 边界</strong>
+            <span>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/api/chat.py#L14-L36">backend/app/api/chat.py:14-36</a>
+              每次请求创建 AgentLoop，读取/写回进程内会话。
+            </span>
+          </div>
+          <div class="evidence-row">
+            <strong>当前前端轨迹</strong>
+            <span>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/frontend/src/components/ToolTrace.tsx#L7-L33">frontend/src/components/ToolTrace.tsx:7-33</a>
+              把工具事件以折叠面板展示给调试/学习视角。
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-panel">
+          <input class="detail-toggle" type="checkbox" id="pseudocode-toggle">
+          <label class="detail-title" for="pseudocode-toggle">展开：两段核心伪代码对照</label>
+          <div class="detail-body">
+            <p><strong>S20 形态：</strong>模型原生工具调用，直到没有 tool_use 才结束。</p>
+            <pre><code>while True:
+    inject_cron_and_background()
+    prepare_context(messages)
+    tools, handlers = assemble_tool_pool()
+    response = call_llm(messages, tools)
+    if not has_tool_use(response.content):
+        trigger_hooks("Stop", messages)
+        return
+    for block in response.content:
+        blocked = trigger_hooks("PreToolUse", block)
+        output = blocked or call_tool_handler(handlers[block.name], block.input)
+        trigger_hooks("PostToolUse", block, output)
+        results.append(tool_result(block.id, output))
+    messages.append({"role": "user", "content": results})</code></pre>
+            <p><strong>当前项目形态：</strong>模型输出业务 JSON，后端校验后执行有限工具。</p>
+            <pre><code>for step in range(1, max_steps + 1):
+    raw_step = model_client.generate_json(messages)
+    if raw_step["type"] == "final_answer":
+        return ChatResponse(...)
+    if raw_step["type"] == "tool_call":
+        tool_call = AgentToolCall(**raw_step)
+        result, event = tool_registry.run(tool_call.tool_name, tool_call.arguments, step)
+        messages.append(assistant_json(tool_call))
+        messages.append(tool_observation(result, event))
+        continue
+return fallback_response()</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="recommendations" class="section">
+        <h2>对当前项目的借鉴建议</h2>
+        <p>
+          不建议直接把 S20 全套机制搬进 HomeGuard。当前项目是面向 C 端业务的 Agent，安全边界应该继续保持窄。
+          更合理的做法是只吸收那些能提升稳定性和可观测性的机制。
+        </p>
+        <div class="recommendation">
+          <div class="rec">
+            <h3>优先引入：统一 hook / trace 管线</h3>
+            <p>
+              当前已有 <code>ToolEvent</code>，可以借鉴 S20 的 <code>PreToolUse</code>/<code>PostToolUse</code>/<code>Stop</code>
+              思路，把参数校验、耗时、错误、用户可见说明都统一成事件。这样后续新增工具不会散落日志逻辑。
+            </p>
+          </div>
+          <div class="rec">
+            <h3>优先引入：动态工具说明但保持白名单</h3>
+            <p>
+              S20 的 <code>assemble_tool_pool()</code> 很适合插件化。当前项目可以不开放动态 MCP，但可以把
+              <code>TOOL_SPEC</code> 从静态字符串改成由工具 schema 自动生成，避免新增工具时忘记同步 prompt。
+            </p>
+          </div>
+          <div class="rec">
+            <h3>中期引入：会话和工具轨迹持久化</h3>
+            <p>
+              现在 <code>session_store</code> 是进程内存，且跨请求只保存 user/assistant 终态。建议把完整工具观察存储到
+              SQLite、Redis 或业务数据库，方便长对话、问题复盘和效果评估。
+            </p>
+          </div>
+          <div class="rec">
+            <h3>中期引入：模型错误恢复与 fallback</h3>
+            <p>
+              可以借鉴 S20 的重试、fallback model、max_tokens 恢复，但要做成服务端策略，而不是 CLI 交互式策略。
+              对 C 端 App 来说，超时预算和用户反馈比无限自恢复更重要。
+            </p>
+          </div>
+          <div class="rec">
+            <h3>暂不建议：shell、文件写入、worktree、teammate</h3>
+            <p>
+              这些是 coding agent 的关键能力，但对安防 App 的线上 Agent 来说风险大于收益。除非未来做内部运维/研发助手，
+              否则不应出现在 C 端链路。
+            </p>
+          </div>
+        </div>
+        <div class="callout warning">
+          <strong>架构提醒：</strong>
+          如果未来要支持“视频检索后继续追问上一段视频”“跨轮追踪家庭设备状态”“长期用户偏好记忆”，当前的进程内会话和静态 prompt
+          会成为主要瓶颈。这时应优先补持久化、上下文摘要和可审计 trace，而不是先补多 agent。
+        </div>
+      </div>
+
+      <div id="conclusion" class="section">
+        <h2>结论</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <span class="tag tag-green">保留</span>
+            <h3>当前项目的受控业务边界</h3>
+            <p>
+              三个业务工具 + JSON 合约 + Pydantic 校验，是适合 C 端安防 App 的实现方式。它牺牲了通用性，换来了可预测性。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag tag-orange">补强</span>
+            <h3>trace、schema、持久化</h3>
+            <p>
+              从 S20 借鉴 hook、动态 schema、错误恢复和上下文管理，会比引入 subagent/worktree 更有实际价值。
+            </p>
+          </div>
+          <div class="card">
+            <span class="tag tag-red">避免</span>
+            <h3>不要复制 coding-agent 高权限工具</h3>
+            <p>
+              shell、文件写入、worktree、MCP destructive tool 适合开发者工具，不适合直接进入 C 端业务 Agent。
+            </p>
+          </div>
+        </div>
+        <p class="footer-note">
+          本报告只新增静态 HTML 文档，不修改后端、前端运行代码，也不写入任何密钥或外部仓库源码。
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

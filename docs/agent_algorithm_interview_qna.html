@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent 算法面试问答稿</title>
+    <style>
+      :root {
+        --bg: #f4f7f3;
+        --paper: #ffffff;
+        --ink: #18211f;
+        --muted: #5c6965;
+        --line: #d7dfd7;
+        --line-strong: #aebcaf;
+        --green: #0f766e;
+        --green-dark: #0a514c;
+        --green-soft: #dff4ef;
+        --blue: #315f9f;
+        --blue-soft: #e6efff;
+        --amber: #9a5a00;
+        --amber-soft: #fff0d4;
+        --rose: #9c4055;
+        --rose-soft: #ffe8ed;
+        --shadow: 0 18px 44px rgba(31, 49, 43, 0.1);
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(140deg, rgba(15, 118, 110, 0.1), transparent 34rem),
+          linear-gradient(320deg, rgba(49, 95, 159, 0.08), transparent 30rem),
+          var(--bg);
+        color: var(--ink);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "PingFang SC",
+          "Microsoft YaHei",
+          sans-serif;
+        line-height: 1.62;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        padding-bottom: 28px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 780;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: var(--paper);
+        color: var(--green-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        box-shadow: 0 10px 26px rgba(31, 49, 43, 0.08);
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .nav a {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--muted);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        gap: 24px;
+        align-items: stretch;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        padding: 42px;
+        min-height: 430px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--green-dark);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 860px;
+        margin-bottom: 22px;
+        font-size: clamp(42px, 7vw, 82px);
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(28px, 3.8vw, 44px);
+        line-height: 1.04;
+      }
+
+      h3 {
+        margin-bottom: 10px;
+        font-size: 20px;
+        line-height: 1.22;
+      }
+
+      .lead {
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 20px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .summary-card {
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        padding: 15px;
+        background: #fbfcf9;
+      }
+
+      .summary-card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .summary-card span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .interview-card {
+        padding: 28px;
+        overflow: hidden;
+      }
+
+      .score-box {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .score-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fbfcf9;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .score-row b {
+        color: var(--ink);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 28px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        padding: 18px;
+      }
+
+      .toc h2 {
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .toc a {
+        display: block;
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        color: var(--green-dark);
+      }
+
+      .content {
+        display: grid;
+        gap: 18px;
+      }
+
+      .section {
+        padding: 30px;
+      }
+
+      .question {
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        background: #fbfcf9;
+      }
+
+      .question + .question {
+        margin-top: 14px;
+      }
+
+      .question-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+
+      .qid {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        min-width: 42px;
+        height: 34px;
+        border-radius: 999px;
+        background: var(--green-soft);
+        color: var(--green-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 800;
+      }
+
+      .ask {
+        flex: 1;
+      }
+
+      .ask b {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--green-dark);
+        font-size: 13px;
+      }
+
+      .ask h3 {
+        margin-bottom: 0;
+      }
+
+      .answer-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+        gap: 14px;
+      }
+
+      .answer,
+      .followup,
+      .rubric {
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        padding: 16px;
+        background: var(--paper);
+      }
+
+      .answer strong,
+      .followup strong,
+      .rubric strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .answer p,
+      .followup p,
+      .rubric p,
+      .section p {
+        color: var(--muted);
+      }
+
+      .answer p:last-child,
+      .followup p:last-child,
+      .rubric p:last-child,
+      .section p:last-child {
+        margin-bottom: 0;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .tag {
+        border-radius: 999px;
+        padding: 5px 9px;
+        background: #eff4ee;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tag.green {
+        background: var(--green-soft);
+        color: var(--green-dark);
+      }
+
+      .tag.blue {
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+
+      .tag.amber {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+
+      .tag.rose {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+
+      .code {
+        display: block;
+        overflow: auto;
+        margin: 12px 0 0;
+        border: 1px solid #20332f;
+        border-radius: 12px;
+        padding: 14px;
+        background: #17231f;
+        color: #dcefe9;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      .formula {
+        border-left: 4px solid var(--green);
+        margin: 14px 0;
+        padding: 12px 14px;
+        background: var(--green-soft);
+        color: var(--green-dark);
+        font-weight: 720;
+      }
+
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
+        font-size: 14px;
+      }
+
+      .matrix th,
+      .matrix td {
+        border: 1px solid var(--line);
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .matrix th {
+        background: #eef5ef;
+      }
+
+      .footer {
+        padding: 28px 0 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 1080px) {
+        .hero,
+        .layout,
+        .answer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .page {
+          padding: 18px;
+        }
+
+        .topbar,
+        .question-head {
+          display: block;
+        }
+
+        .nav {
+          justify-content: flex-start;
+          margin-top: 14px;
+        }
+
+        .hero-copy,
+        .interview-card,
+        .section {
+          padding: 22px;
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">AI</span>
+          <span>Agent Algorithm Interview Notes</span>
+        </div>
+        <nav class="nav" aria-label="页面导航">
+          <a href="#core">核心范式</a>
+          <a href="#tool">工具决策</a>
+          <a href="#rag">RAG 检索</a>
+          <a href="#eval">评估安全</a>
+          <a href="#summary">答辩总结</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="panel hero-copy">
+            <div>
+              <p class="eyebrow">候选人答辩稿</p>
+              <h1>从 Agent 算法角度回答这个项目</h1>
+              <p class="lead">
+                这份页面不是讲代码怎么写，而是模拟面试者如何解释这个项目背后的大模型 Agent 算法：决策循环、工具路由、Observation 回填、RAG grounding、记忆、评估与安全。
+              </p>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-card">
+                <strong>项目算法定位</strong>
+                <span>轻量 ReAct / Tool-Use Agent，而不是复杂 planner。</span>
+              </div>
+              <div class="summary-card">
+                <strong>核心能力</strong>
+                <span>模型做结构化决策，后端工具执行，结果回填再回答。</span>
+              </div>
+              <div class="summary-card">
+                <strong>面试重点</strong>
+                <span>工具选择准确率、grounding、鲁棒性、安全边界和评估指标。</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel interview-card">
+            <p class="eyebrow">面试官看什么</p>
+            <h2>不是背概念，而是会不会把概念落到这个项目</h2>
+            <p>
+              一个好的解决方案架构师不一定要能手写每一行代码，但必须能解释为什么这个 Agent 这样设计、它解决什么算法问题、哪里容易错、如何评估和改进。
+            </p>
+            <div class="score-box">
+              <div class="score-row"><b>Agent 范式</b><span>ReAct / Tool-Use / Function Calling</span></div>
+              <div class="score-row"><b>决策能力</b><span>工具路由、参数生成、澄清策略</span></div>
+              <div class="score-row"><b>证据约束</b><span>RAG grounding、Observation、反幻觉</span></div>
+              <div class="score-row"><b>生产意识</b><span>评估、安全、成本、延迟、鲁棒性</span></div>
+            </div>
+          </aside>
+        </section>
+
+        <div class="layout">
+          <aside class="panel toc">
+            <h2>题目导航</h2>
+            <a href="#q1">1. 这个项目是什么 Agent 范式？</a>
+            <a href="#q2">2. ReAct 在项目里怎么体现？</a>
+            <a href="#q3">3. 工具选择怎么做？</a>
+            <a href="#q4">4. 为什么要 JSON 决策？</a>
+            <a href="#q5">5. Observation 为什么重要？</a>
+            <a href="#q6">6. 视频检索属于什么算法？</a>
+            <a href="#q7">7. 多轮上下文怎么影响决策？</a>
+            <a href="#q8">8. 有没有规划能力？</a>
+            <a href="#q9">9. 怎么控制幻觉？</a>
+            <a href="#q10">10. 如何评估 Agent？</a>
+            <a href="#q11">11. 算法短板是什么？</a>
+            <a href="#q12">12. 如果升级一版怎么做？</a>
+          </aside>
+
+          <div class="content">
+            <section class="panel section" id="core">
+              <p class="eyebrow">Core Frame</p>
+              <h2>开场先给一个算法总定位</h2>
+              <div class="formula">
+                这个项目 = LLM 决策器 + 工具白名单 + Observation 回填 + 流式最终回答。
+              </div>
+              <p>
+                作为面试者，我会先把它定义为一个轻量 ReAct 风格的工具增强 Agent。它不只是聊天，而是通过大模型判断下一步动作：直接回答，或调用 web_search、video_search、iot_control。工具执行结果再作为 observation 回填给模型，最终生成 grounded 的自然语言回复。
+              </p>
+            </section>
+
+            <section class="panel section" id="q1">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q1</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>这个项目更接近哪种 Agent 范式？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      这个项目更接近轻量级 ReAct / Tool-Use Agent。它不是单纯 ChatBot，也不是完整的 Plan-and-Execute 多步规划系统。它的核心是让 LLM 在每一轮里做结构化决策：要么输出 final_answer，要么输出 tool_call。后端执行工具后，把工具结果作为 observation 放回上下文，模型再继续决策或生成最终回答。
+                    </p>
+                    <p>
+                      所以算法结构可以概括为：Thought-like decision、Action、Observation、Final Answer。只是这里没有直接暴露 chain-of-thought，而是把决策压缩成 JSON 协议。
+                    </p>
+                    <div class="tag-row">
+                      <span class="tag green">ReAct</span>
+                      <span class="tag blue">Tool-Augmented LLM</span>
+                      <span class="tag amber">Structured Decision</span>
+                    </div>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>候选人是否知道 Agent 不是“调一次模型”，而是模型、动作、观察、状态组成的循环。</p>
+                    <strong>追问可答</strong>
+                    <p>如果任务更复杂，比如“检查昨晚异常并恢复摄像头”，才更需要 Plan-and-Execute 或 planner。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q2">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q2</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>ReAct 的 Reasoning、Action、Observation 在项目中分别是什么？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      Reasoning 对应模型对用户意图和上下文的判断，但项目里没有把完整思维链直接暴露，而是让模型输出受约束的 JSON 决策。Action 对应 tool_call，比如调用 iot_control 或 video_search。Observation 对应工具执行结果，包括工具状态、输出、耗时、IoT 状态或视频结果。Final Answer 是模型基于这些 observation 再生成的自然语言回复。
+                    </p>
+                    <pre class="code">用户目标
+  -> LLM JSON 决策
+  -> tool_call
+  -> tool_result / observation
+  -> LLM final answer</pre>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能把抽象论文范式映射到实际系统，而不是只背 ReAct 名词。</p>
+                    <strong>追问可答</strong>
+                    <p>该项目更强调可控动作协议，而不是展示模型内部推理。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="tool">
+              <p class="eyebrow">Tool Decision</p>
+              <h2>工具选择是最核心的算法问题</h2>
+              <p>
+                这个项目的 Agent 能不能用，关键不是页面多漂亮，而是模型能否稳定判断：什么时候不用工具，什么时候查网络，什么时候查视频，什么时候模拟控制摄像头。
+              </p>
+            </section>
+
+            <section class="panel section" id="q3">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q3</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>这个 Agent 怎么选择工具？错误类型有哪些？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      目前主要是 LLM-based routing：系统提示词给出工具说明和触发条件，模型根据用户意图输出 tool_call 或 final_answer。比如实时信息走 web_search，监控内容查询走 video_search，摄像头移动或隐私遮蔽走 iot_control。
+                    </p>
+                    <p>
+                      错误大概有四类：第一，该调用工具但直接回答；第二，调用了错误工具；第三，工具对但参数错，比如 target 不稳定；第四，模糊意图没有追问而强行执行。
+                    </p>
+                    <p>
+                      提升方式包括：更清晰的 tool schema、few-shot 路由样例、专门的路由评测集、低置信度澄清策略，以及必要时引入一个轻量 intent classifier 做前置路由。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否知道工具路由是 Agent 成败的关键算法模块。</p>
+                    <strong>项目映射</strong>
+                    <p>该项目评测里已有 route_accuracy、tool_accuracy、args_accuracy，这说明作者意识到了路由与参数需要单独评估。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q4">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q4</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>为什么要让模型输出 JSON，而不是直接输出文字？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      因为 Agent 的动作必须可解析、可校验、可审计。自然语言适合给人看，但不适合直接驱动工具。JSON 决策相当于把 LLM 的语义理解结果转换成机器可执行协议。
+                    </p>
+                    <p>
+                      在这个项目里，模型只能输出两类结构：final_answer 或 tool_call。tool_call 里必须有 tool_name、arguments 和 reason。后端再用 schema 和工具白名单判断是否能执行。这样可以降低模型自由发挥导致的误动作风险。
+                    </p>
+                    <pre class="code">{
+  "type": "tool_call",
+  "tool_name": "iot_control",
+  "arguments": {
+    "action": "move",
+    "target": "front_door"
+  }
+}</pre>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否理解 structured output / function calling 是 Agent 落地的稳定性基础。</p>
+                    <strong>追问可答</strong>
+                    <p>真正生产中最好使用模型原生 function calling 或 JSON schema 约束，而不是只靠 prompt 说“请输出 JSON”。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q5">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q5</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>Observation 回填为什么重要？里面应该放什么？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      Observation 是 Agent 从外部世界拿到的事实反馈。没有 observation，模型只能凭参数和常识回答，容易幻觉。这个项目在工具执行后，把 tool_name、status、result、event 作为 tool 消息回填给模型，让最终回答基于真实工具结果。
+                    </p>
+                    <p>
+                      我认为 observation 至少要包含：工具输入、工具输出、执行状态、错误信息、耗时，以及业务状态。例如 video_search 要返回视频片段和分数；iot_control 要返回模拟状态；web_search 要返回来源和摘要。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否懂 grounding：最终回答必须被工具结果约束，而不是模型自己想象。</p>
+                    <strong>追问可答</strong>
+                    <p>Observation 太长时需要摘要、裁剪、证据排序，避免占满上下文。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="rag">
+              <p class="eyebrow">RAG & Video Retrieval</p>
+              <h2>视频检索不是“数据库查一下”</h2>
+              <p>
+                从算法角度，video_search 是一个面向监控内容的检索增强生成路径。它先检索视频片段，再让模型基于检索结果回答。
+              </p>
+            </section>
+
+            <section class="panel section" id="q6">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q6</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>video_search 本质上是什么算法？如何改进效果？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      它本质上是 RAG 的检索阶段，只是知识源不是普通文档，而是视频片段的文本描述或多模态向量索引。用户 query 进入 VikingDB 做多模态检索，返回候选片段，包括 f_id、f_text、score 等。模型最终只能基于这些候选片段回答。
+                    </p>
+                    <p>
+                      如果效果不好，我会分层排查：视频切片粒度是否合理，片段描述是否准确，embedding 模型是否适配安防场景，召回 top_k 是否合理，是否需要 rerank，低分结果是否应该拒答。
+                    </p>
+                    <div class="tag-row">
+                      <span class="tag blue">多模态检索</span>
+                      <span class="tag green">RAG grounding</span>
+                      <span class="tag amber">召回 + 重排</span>
+                    </div>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能把 RAG 套到视频场景，而不是只说“向量数据库查一下”。</p>
+                    <strong>追问可答</strong>
+                    <p>召回解决“找得到”，重排解决“排得准”。监控视频还要处理时间、对象、事件、地点等结构信息。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q7">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q7</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>多轮上下文在这个 Agent 里起什么作用？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      多轮上下文主要用于指代消解和状态延续。比如用户第一轮说“把摄像头转向门口”，第二轮说“再往左一点”，模型需要从历史中知道“再”指的是同一个摄像头控制任务，而不是普通聊天。
+                    </p>
+                    <p>
+                      当前项目是短期会话记忆，直接把历史消息加入模型上下文。更成熟的做法是维护结构化状态，例如当前设备、上次动作、上次目标、隐私遮蔽状态等；长对话则需要摘要和状态抽取，不能无限塞历史。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否知道 memory 不是简单保存聊天记录，而是服务于下一步决策。</p>
+                    <strong>追问可答</strong>
+                    <p>长期记忆要区分用户偏好、设备绑定、历史事件，还要有隐私授权。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q8">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q8</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>这个项目有没有真正的规划能力？什么时候需要 planner？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      当前项目不是完整 planner，它更像单步或少步 ReAct loop。每一轮模型只决定下一步：直接回答或调用一个工具。max_steps=3 允许它工具调用后再回答，但没有显式生成一个多步骤计划。
+                    </p>
+                    <p>
+                      当用户目标包含多个子任务时，就需要 planner。例如“检查昨晚有没有异常，找出相关片段，并把摄像头恢复到门口”。这需要先拆成视频检索、异常摘要、IoT 恢复三个子步骤，并在每步后检查结果。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能区分轻量 ReAct 和 Plan-and-Execute。</p>
+                    <strong>追问可答</strong>
+                    <p>planner 会提升复杂任务能力，但也增加延迟、成本和错误传播风险。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q9">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q9</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>从算法角度，这个 Agent 怎么降低幻觉和错误动作？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      这个项目主要靠三层约束：第一，结构化 JSON 决策，避免自由文本直接驱动动作；第二，工具白名单和参数校验，模型请求不等于后端执行；第三，最终回答必须基于 observation，尤其视频搜索没有结果时不能编造监控内容。
+                    </p>
+                    <p>
+                      但 prompt 不是完整安全方案。生产中还需要 policy model 或规则策略做高危动作拦截，例如删除录像、关闭报警、偷偷打开卧室摄像头等请求，应该拒绝或要求二次确认。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否知道安全不能只靠提示词，工具调用必须有策略层。</p>
+                    <strong>追问可答</strong>
+                    <p>Prompt injection 会诱导模型泄露系统提示词或越权调用工具，必须在模型外做权限与策略校验。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="eval">
+              <p class="eyebrow">Evaluation</p>
+              <h2>Agent 不是只看最终回答对不对</h2>
+              <p>
+                一个工具型 Agent 的评估要拆开看：路径是否正确、工具是否正确、参数是否正确、回答是否基于证据、安全边界是否守住。
+              </p>
+            </section>
+
+            <section class="panel section" id="q10">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q10</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>你会怎么评估这个 Agent 的算法效果？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      我不会只看最终回答准确率。这个项目至少要分层评估：route_accuracy 看路径是否正确，tool_accuracy 看工具是否选对，args_accuracy 看参数是否正确，answer_groundedness 看回答是否基于工具结果，safety_pass_rate 看危险请求是否被拦截。
+                    </p>
+                    <p>
+                      另外还要看 latency、工具失败率、澄清率、幻觉率和成本。因为 Agent 的错误可能发生在每一层：路由错、工具错、参数错、检索错、总结错。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能设计 Agent 评测，而不是只拿聊天答案做主观判断。</p>
+                    <strong>项目映射</strong>
+                    <p>项目里已经有非视频评测模块，包含 route、tool、args、safety、answer 等维度。</p>
+                  </div>
+                </div>
+              </article>
+
+              <table class="matrix" aria-label="Agent 评估指标">
+                <thead>
+                  <tr>
+                    <th>指标</th>
+                    <th>看什么</th>
+                    <th>为什么重要</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>route_accuracy</td>
+                    <td>直接回答、工具调用、安全拒绝是否选对</td>
+                    <td>决定 Agent 第一跳是否走偏</td>
+                  </tr>
+                  <tr>
+                    <td>tool_accuracy</td>
+                    <td>web_search / video_search / iot_control 是否选对</td>
+                    <td>工具错了，后续再好也难救</td>
+                  </tr>
+                  <tr>
+                    <td>args_accuracy</td>
+                    <td>device_id、action、target、query 是否正确</td>
+                    <td>工具参数是动作执行的核心</td>
+                  </tr>
+                  <tr>
+                    <td>groundedness</td>
+                    <td>回答是否基于 observation 和检索结果</td>
+                    <td>防止模型编造视频内容或工具结果</td>
+                  </tr>
+                  <tr>
+                    <td>safety_pass_rate</td>
+                    <td>危险请求是否拒绝或澄清</td>
+                    <td>安防场景下安全优先级最高</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section class="panel section" id="q11">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q11</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>这个项目目前最大的算法短板是什么？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      我认为短板有四个。第一，工具路由主要依赖 prompt，稳定性有限。第二，缺少显式置信度和澄清策略，模糊意图可能会被强行路由。第三，视频检索链路还没有完整的召回、重排、低分拒答策略。第四，安全策略主要靠提示词和工具校验，还没有独立 policy layer。
+                    </p>
+                    <p>
+                      从算法上，我会优先补强工具选择评测和参数归一化，然后做 RAG grounding 评测，再加入高危动作策略模型或规则层。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能诚实识别 demo 和生产 Agent 的差距。</p>
+                    <strong>加分点</strong>
+                    <p>能把“短板”转成明确算法优化路线，而不是泛泛说“继续优化 prompt”。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="q12">
+              <article class="question">
+                <div class="question-head">
+                  <span class="qid">Q12</span>
+                  <div class="ask">
+                    <b>面试官问</b>
+                    <h3>如果让你从算法角度升级一版，你会怎么做？</h3>
+                  </div>
+                </div>
+                <div class="answer-grid">
+                  <div class="answer">
+                    <strong>我会这样回答</strong>
+                    <p>
+                      我会分三层升级。第一层是决策层：引入更严格的 function calling schema、few-shot 路由样例、置信度字段和澄清策略。第二层是检索层：优化视频切片、embedding、top_k、rerank 和低置信拒答。第三层是安全与评估层：加入 policy check、危险动作分类、prompt injection 测试集和 groundedness 评估。
+                    </p>
+                    <p>
+                      如果要支持复杂任务，我会再加 planner，把“检查异常并恢复摄像头”这类复合请求拆成可验证子任务，每个子任务执行后都要观察和校验。
+                    </p>
+                  </div>
+                  <div class="rubric">
+                    <strong>考察点</strong>
+                    <p>是否能提出结构化优化方案，而不是只说“换更强模型”。</p>
+                    <strong>追问可答</strong>
+                    <p>更强模型有帮助，但工具 schema、数据质量、检索评估、安全策略往往更决定系统上限。</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel section" id="summary">
+              <p class="eyebrow">One-Minute Answer</p>
+              <h2>最后可以这样做 1 分钟总结</h2>
+              <p>
+                这个项目是一个安防场景下的轻量 ReAct 风格工具型 Agent。它用 LLM 做结构化决策，判断用户请求是普通回答、联网搜索、视频检索还是 IoT 模拟控制。模型输出 JSON action，后端通过工具白名单执行并校验参数，工具结果作为 observation 回填给模型，最终模型基于 observation 生成自然语言回答。
+              </p>
+              <p>
+                从算法角度看，核心挑战不是前端后端，而是工具路由准确率、参数生成稳定性、RAG 检索 grounding、多轮上下文理解、幻觉控制、安全策略和评估体系。如果升级生产版，我会优先增强 function calling schema、澄清策略、视频召回重排、policy check 和分层评测指标。
+              </p>
+              <div class="tag-row">
+                <span class="tag green">LLM Decision</span>
+                <span class="tag green">Tool Use</span>
+                <span class="tag blue">RAG Grounding</span>
+                <span class="tag amber">Evaluation</span>
+                <span class="tag rose">Safety</span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        生成依据：当前项目的 AgentLoop、SYSTEM_PROMPT、ToolRegistry、schema 和 agent_accuracy 评测设计。
+      </footer>
+    </div>
+  </body>
+</html>

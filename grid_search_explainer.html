@@ -1,0 +1,1293 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>run_grid_search 代码讲解页</title>
+  <style>
+    :root {
+      --bg: #eef1f5;
+      --paper: #ffffff;
+      --ink: #172033;
+      --muted: #687386;
+      --line: #d8dee9;
+      --soft: #f7f9fc;
+      --blue: #2563eb;
+      --green: #168a5a;
+      --orange: #c66a13;
+      --red: #d92d20;
+      --purple: #7657d8;
+      --cyan: #087ea4;
+      --shadow: 0 22px 60px rgba(23, 32, 51, 0.10);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.12), transparent 28rem),
+        radial-gradient(circle at 88% 8%, rgba(118, 87, 216, 0.11), transparent 30rem),
+        linear-gradient(180deg, #f8fafc 0%, var(--bg) 42%, #e8edf4 100%);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.68;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .page {
+      width: min(1220px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      bottom: -90px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 48px solid rgba(37, 99, 235, 0.08);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: rgba(37, 99, 235, 0.10);
+      border: 1px solid rgba(37, 99, 235, 0.20);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: -0.03em;
+      line-height: 1.16;
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-family: "Songti SC", "Noto Serif CJK SC", serif;
+      font-size: clamp(36px, 6vw, 68px);
+      max-width: 10.5em;
+    }
+
+    h2 {
+      font-size: 25px;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lead {
+      margin-top: 18px;
+      max-width: 60ch;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 9px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .hero-side {
+      padding: 22px;
+      background: #f3f5f8;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .meta-box {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .meta-box summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      font-weight: 850;
+      list-style: none;
+    }
+
+    .meta-box summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .meta-box summary::after {
+      content: "展开";
+      float: right;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .meta-box[open] summary::after {
+      content: "收起";
+    }
+
+    .meta-content {
+      border-top: 1px solid var(--line);
+      padding: 16px 18px 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft);
+      padding: 14px;
+    }
+
+    .status strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 18px 0 24px;
+    }
+
+    .nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font-weight: 750;
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 26px;
+      margin-top: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .section-head p {
+      max-width: 64ch;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f2f5fa;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: linear-gradient(180deg, #fff, #f9fbfe);
+      min-height: 160px;
+    }
+
+    .step .num {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      background: var(--blue);
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .diagram-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .diagram-panel {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #f7f9fd);
+      padding: 16px;
+      overflow: hidden;
+      min-height: 500px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 850;
+      padding: 8px 13px;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .diagram {
+      display: none;
+    }
+
+    .diagram.active {
+      display: block;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .node {
+      cursor: pointer;
+      transition: transform 0.16s ease, filter 0.16s ease;
+      transform-origin: center;
+    }
+
+    .node:hover {
+      filter: drop-shadow(0 12px 16px rgba(23, 32, 51, 0.16));
+      transform: translateY(-2px);
+    }
+
+    .node rect,
+    .node path {
+      stroke-width: 1.7;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-weight: 850;
+      fill: #172033;
+      font-size: 13px;
+    }
+
+    .arrow {
+      fill: none;
+      stroke: #8ea0ba;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      marker-end: url(#arrowhead);
+    }
+
+    .arrow.flowing {
+      stroke-dasharray: 8 8;
+      animation: dash 1.6s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -32;
+      }
+    }
+
+    .detail-panel {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #f4f6fa;
+      padding: 18px;
+      min-height: 500px;
+    }
+
+    .detail-panel .label {
+      display: inline-flex;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .detail-title {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.22;
+      margin-bottom: 10px;
+    }
+
+    .detail-desc {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .detail-list {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      flex: 0 0 auto;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .explain-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .explain-list li {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px 15px;
+    }
+
+    .explain-list strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .explain-list span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .code {
+      margin: 0;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid #c9d3e3;
+      background: #101826;
+      color: #dce7f7;
+      overflow: auto;
+      font: 13px/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .code .comment {
+      color: #8fb0d6;
+    }
+
+    .code .key {
+      color: #9ed4ff;
+    }
+
+    .code .value {
+      color: #b9f6ca;
+    }
+
+    .simulator {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .control {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+    }
+
+    .sim-output {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #f7f9fc;
+      padding: 16px;
+      color: var(--muted);
+    }
+
+    .sim-output strong {
+      color: var(--ink);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f3f6fb;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .callout {
+      border: 1px solid rgba(198, 106, 19, 0.30);
+      background: #fff8ef;
+      border-radius: 18px;
+      padding: 16px;
+      color: #6b3a0d;
+      margin-top: 14px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .diagram-layout,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3,
+      .legend,
+      .simulator {
+        grid-template-columns: 1fr;
+      }
+
+      .sim-output {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 24px, 1220px);
+      }
+
+      .hero-main,
+      .section {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-main card">
+        <span class="eyebrow">代码走读 · 视频搜索评测 · Grid Search</span>
+        <h1>把 run_grid_search 当成一台离线调参机</h1>
+        <p class="lead">
+          这页用图解方式讲清楚 <code>demo.py#L422-L478</code>：它如何复用已经 rerank 的结果，
+          遍历 <code>threshold</code> 和 <code>step_beta</code>，最后找出让评测指标最好的参数组合。
+        </p>
+        <div class="quick-actions">
+          <a class="button primary" href="#diagrams">看架构图</a>
+          <a class="button" href="#function">看函数拆解</a>
+          <a class="button" href="#simulator">玩参数调节器</a>
+          <a class="button" href="./grid_search_explainer.html" download>下载本页 HTML</a>
+        </div>
+      </div>
+
+      <aside class="hero-side">
+        <details class="meta-box">
+          <summary>上下文边界说明</summary>
+          <div class="meta-content">
+            <p>
+              当前磁盘上的 <code>demo.py</code> 是空文件；本页基于 IDE 传入的 422-478 行代码片段、
+              <code>bash.sh</code> 中的参数，以及函数命名来还原整体链路。
+            </p>
+            <div class="status-grid">
+              <div class="status">
+                <strong>✅ 可确定</strong>
+                <span>网格搜索复用已有 rerank 分数，不重复调用线上接口。</span>
+              </div>
+              <div class="status">
+                <strong>✅ 可确定</strong>
+                <span>输出支持 best、top10、CSV、JSON 和日志。</span>
+              </div>
+              <div class="status">
+                <strong>⚠️ 需完整源码确认</strong>
+                <span>召回、rerank 接口、数据读取的真实实现位置。</span>
+              </div>
+              <div class="status">
+                <strong>⚠️ 需完整源码确认</strong>
+                <span><code>postprocess_truncate</code> 的具体截断公式。</span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="callout">
+          <strong>最短理解：</strong>
+          先把所有候选视频排好序，再用两枚旋钮反复试切法，看看保留多少条结果时
+          <code>map@10</code> 或 <code>recall@10</code> 最好。
+        </div>
+      </aside>
+    </section>
+
+    <nav class="nav" aria-label="页面导航">
+      <a href="#overview">1. 一句话</a>
+      <a href="#diagrams">2. 三张图</a>
+      <a href="#function">3. 函数拆解</a>
+      <a href="#simulator">4. 参数调节器</a>
+      <a href="#outputs">5. 输出解释</a>
+    </nav>
+
+    <section id="overview" class="section card">
+      <div class="section-head">
+        <div>
+          <h2>1. 先用一句话建立全局感</h2>
+          <p>
+            <code>run_grid_search</code> 不是搜索主流程本身，而是搜索主流程后面的“离线评测与调参模块”。
+          </p>
+        </div>
+        <span class="badge">先跑通 → 后理解 → 再修改</span>
+      </div>
+
+      <div class="grid-3">
+        <div class="step">
+          <span class="num">1</span>
+          <h3>已有结果</h3>
+          <p>
+            前面流程已经完成召回和 rerank，给每个 query 留下
+            <code>reranked_full_results</code>。
+          </p>
+        </div>
+        <div class="step">
+          <span class="num">2</span>
+          <h3>批量试参数</h3>
+          <p>
+            这段函数只改变后处理参数：<code>threshold</code> 和
+            <code>step_beta</code>。
+          </p>
+        </div>
+        <div class="step">
+          <span class="num">3</span>
+          <h3>按指标选冠军</h3>
+          <p>
+            每组参数都计算指标，然后按 <code>grid_objective</code>
+            排序，选出最优组合。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="diagrams" class="section card">
+      <div class="section-head">
+        <div>
+          <h2>2. 架构图、模块依赖图、数据流向图</h2>
+          <p>
+            点击图里的模块，右侧会显示解释。颜色用于区分功能：蓝色是入口与参数，绿色是排序，
+            橙色是后处理，红色是评测，紫色是输出。
+          </p>
+        </div>
+        <span class="badge">可点击图解</span>
+      </div>
+
+      <div class="diagram-layout">
+        <div class="diagram-panel">
+          <div class="tabs">
+            <button class="tab active" data-tab="arch">项目架构图</button>
+            <button class="tab" data-tab="deps">模块依赖图</button>
+            <button class="tab" data-tab="flow">数据流向图</button>
+          </div>
+
+          <div id="arch" class="diagram active">
+            <svg viewBox="0 0 860 560" role="img" aria-label="项目架构图">
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#8ea0ba"></polygon>
+                </marker>
+              </defs>
+              <path class="arrow flowing" d="M170 96 C225 96 225 96 280 96"></path>
+              <path class="arrow flowing" d="M430 96 C485 96 485 96 540 96"></path>
+              <path class="arrow flowing" d="M615 132 C615 186 615 186 615 240"></path>
+              <path class="arrow flowing" d="M540 286 C485 286 485 286 430 286"></path>
+              <path class="arrow flowing" d="M280 286 C225 286 225 286 170 286"></path>
+              <path class="arrow flowing" d="M170 330 C225 396 340 410 430 394"></path>
+              <path class="arrow flowing" d="M430 394 C500 388 540 382 604 382"></path>
+
+              <g class="node" data-node="cli">
+                <rect x="40" y="58" width="130" height="76" rx="18" fill="#eaf1ff" stroke="#2563eb"></rect>
+                <text x="105" y="88" text-anchor="middle">bash.sh</text>
+                <text x="105" y="110" text-anchor="middle">命令行参数</text>
+              </g>
+              <g class="node" data-node="main">
+                <rect x="280" y="58" width="150" height="76" rx="18" fill="#eef7ff" stroke="#087ea4"></rect>
+                <text x="355" y="88" text-anchor="middle">主评测流程</text>
+                <text x="355" y="110" text-anchor="middle">读取 query/标注</text>
+              </g>
+              <g class="node" data-node="retrieval">
+                <rect x="540" y="58" width="150" height="76" rx="18" fill="#edf8f4" stroke="#168a5a"></rect>
+                <text x="615" y="88" text-anchor="middle">召回 + rerank</text>
+                <text x="615" y="110" text-anchor="middle">候选视频排序</text>
+              </g>
+              <g class="node" data-node="rows">
+                <rect x="540" y="240" width="150" height="92" rx="18" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="615" y="272" text-anchor="middle">per_query_rows</text>
+                <text x="615" y="294" text-anchor="middle">完整重排结果</text>
+              </g>
+              <g class="node" data-node="grid">
+                <rect x="280" y="240" width="150" height="92" rx="18" fill="#fff7ed" stroke="#c66a13"></rect>
+                <text x="355" y="272" text-anchor="middle">run_grid_search</text>
+                <text x="355" y="294" text-anchor="middle">离线试参数</text>
+              </g>
+              <g class="node" data-node="metric">
+                <rect x="40" y="240" width="130" height="92" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="105" y="272" text-anchor="middle">compute_metrics</text>
+                <text x="105" y="294" text-anchor="middle">评测指标</text>
+              </g>
+              <g class="node" data-node="summary">
+                <rect x="280" y="356" width="150" height="76" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="355" y="386" text-anchor="middle">summarize</text>
+                <text x="355" y="408" text-anchor="middle">跨 query 汇总</text>
+              </g>
+              <g class="node" data-node="output">
+                <rect x="604" y="344" width="170" height="100" rx="18" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="689" y="378" text-anchor="middle">best / top10</text>
+                <text x="689" y="400" text-anchor="middle">CSV / JSON</text>
+                <text x="689" y="422" text-anchor="middle">日志</text>
+              </g>
+            </svg>
+          </div>
+
+          <div id="deps" class="diagram">
+            <svg viewBox="0 0 860 560" role="img" aria-label="模块依赖图">
+              <defs>
+                <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#8ea0ba"></polygon>
+                </marker>
+              </defs>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M206 110 C290 110 306 110 390 110"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M206 230 C290 230 306 230 390 230"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M206 350 C290 350 306 350 390 350"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M526 230 C600 190 610 158 670 132"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M526 230 C600 230 610 230 670 230"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M526 230 C600 270 610 302 670 328"></path>
+              <path class="arrow" marker-end="url(#arrowhead2)" d="M526 350 C602 350 618 350 694 350"></path>
+
+              <g class="node" data-node="args">
+                <rect x="58" y="70" width="148" height="80" rx="18" fill="#eaf1ff" stroke="#2563eb"></rect>
+                <text x="132" y="102" text-anchor="middle">args</text>
+                <text x="132" y="124" text-anchor="middle">参数范围/目标</text>
+              </g>
+              <g class="node" data-node="rows">
+                <rect x="58" y="190" width="148" height="80" rx="18" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="132" y="222" text-anchor="middle">per_query_rows</text>
+                <text x="132" y="244" text-anchor="middle">query 级数据</text>
+              </g>
+              <g class="node" data-node="ks">
+                <rect x="58" y="310" width="148" height="80" rx="18" fill="#eef7ff" stroke="#087ea4"></rect>
+                <text x="132" y="342" text-anchor="middle">ks</text>
+                <text x="132" y="364" text-anchor="middle">@K 指标列表</text>
+              </g>
+              <g class="node" data-node="grid">
+                <rect x="390" y="176" width="136" height="108" rx="20" fill="#fff7ed" stroke="#c66a13"></rect>
+                <text x="458" y="214" text-anchor="middle">run_grid_search</text>
+                <text x="458" y="236" text-anchor="middle">核心编排</text>
+                <text x="458" y="258" text-anchor="middle">双层循环</text>
+              </g>
+              <g class="node" data-node="summary">
+                <rect x="390" y="310" width="136" height="80" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="458" y="342" text-anchor="middle">summarize</text>
+                <text x="458" y="364" text-anchor="middle">整体指标</text>
+              </g>
+              <g class="node" data-node="frange">
+                <rect x="670" y="84" width="132" height="64" rx="16" fill="#eaf1ff" stroke="#2563eb"></rect>
+                <text x="736" y="112" text-anchor="middle">frange_int</text>
+                <text x="736" y="132" text-anchor="middle">生成参数表</text>
+              </g>
+              <g class="node" data-node="truncate">
+                <rect x="670" y="196" width="132" height="68" rx="16" fill="#fff7ed" stroke="#c66a13"></rect>
+                <text x="736" y="224" text-anchor="middle">truncate</text>
+                <text x="736" y="244" text-anchor="middle">截断结果</text>
+              </g>
+              <g class="node" data-node="metric">
+                <rect x="670" y="300" width="132" height="68" rx="16" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="736" y="328" text-anchor="middle">metrics</text>
+                <text x="736" y="348" text-anchor="middle">算分</text>
+              </g>
+              <g class="node" data-node="output">
+                <rect x="694" y="408" width="108" height="68" rx="16" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="748" y="436" text-anchor="middle">文件输出</text>
+                <text x="748" y="456" text-anchor="middle">CSV/JSON</text>
+              </g>
+            </svg>
+          </div>
+
+          <div id="flow" class="diagram">
+            <svg viewBox="0 0 860 560" role="img" aria-label="数据流向图">
+              <defs>
+                <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#8ea0ba"></polygon>
+                </marker>
+              </defs>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M164 112 L268 112"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M414 112 L520 112"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M666 112 L746 194"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M746 266 L666 350"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M520 350 L414 350"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M268 350 L164 350"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M104 390 C104 456 256 474 356 474"></path>
+              <path class="arrow flowing" marker-end="url(#arrowhead3)" d="M504 474 C604 474 660 474 748 474"></path>
+
+              <g class="node" data-node="rows">
+                <rect x="42" y="72" width="122" height="80" rx="18" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="103" y="104" text-anchor="middle">row</text>
+                <text x="103" y="126" text-anchor="middle">单个 query</text>
+              </g>
+              <g class="node" data-node="relevant">
+                <rect x="268" y="72" width="146" height="80" rx="18" fill="#eef7ff" stroke="#087ea4"></rect>
+                <text x="341" y="104" text-anchor="middle">relevant_ids</text>
+                <text x="341" y="126" text-anchor="middle">标准答案集合</text>
+              </g>
+              <g class="node" data-node="reranked">
+                <rect x="520" y="72" width="146" height="80" rx="18" fill="#edf8f4" stroke="#168a5a"></rect>
+                <text x="593" y="104" text-anchor="middle">reranked_full</text>
+                <text x="593" y="126" text-anchor="middle">完整排序列表</text>
+              </g>
+              <g class="node" data-node="truncate">
+                <rect x="684" y="194" width="124" height="72" rx="18" fill="#fff7ed" stroke="#c66a13"></rect>
+                <text x="746" y="222" text-anchor="middle">截断</text>
+                <text x="746" y="244" text-anchor="middle">保留前若干条</text>
+              </g>
+              <g class="node" data-node="ids">
+                <rect x="520" y="310" width="146" height="80" rx="18" fill="#edf8f4" stroke="#168a5a"></rect>
+                <text x="593" y="342" text-anchor="middle">f_id list</text>
+                <text x="593" y="364" text-anchor="middle">预测结果 ID</text>
+              </g>
+              <g class="node" data-node="metric">
+                <rect x="268" y="310" width="146" height="80" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="341" y="342" text-anchor="middle">metrics</text>
+                <text x="341" y="364" text-anchor="middle">与标准答案对比</text>
+              </g>
+              <g class="node" data-node="pseudo">
+                <rect x="42" y="310" width="122" height="80" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="103" y="342" text-anchor="middle">pseudo_rows</text>
+                <text x="103" y="364" text-anchor="middle">临时评测行</text>
+              </g>
+              <g class="node" data-node="summary">
+                <rect x="356" y="434" width="148" height="80" rx="18" fill="#fff1f0" stroke="#d92d20"></rect>
+                <text x="430" y="466" text-anchor="middle">combo</text>
+                <text x="430" y="488" text-anchor="middle">参数组合表现</text>
+              </g>
+              <g class="node" data-node="output">
+                <rect x="748" y="434" width="92" height="80" rx="18" fill="#f2efff" stroke="#7657d8"></rect>
+                <text x="794" y="466" text-anchor="middle">best</text>
+                <text x="794" y="488" text-anchor="middle">top10</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="legend">
+            <div class="legend-item"><span class="swatch" style="background:#2563eb"></span>入口参数</div>
+            <div class="legend-item"><span class="swatch" style="background:#168a5a"></span>排序结果</div>
+            <div class="legend-item"><span class="swatch" style="background:#c66a13"></span>后处理</div>
+            <div class="legend-item"><span class="swatch" style="background:#d92d20"></span>评测汇总</div>
+          </div>
+        </div>
+
+        <aside class="detail-panel" id="detailPanel">
+          <span class="label">点击图中模块</span>
+          <div class="detail-title" id="detailTitle">run_grid_search</div>
+          <p class="detail-desc" id="detailDesc">
+            它负责把参数组合逐个试完，并用统一的评测指标比较优劣。点击左侧任意模块可查看更具体的说明。
+          </p>
+          <ul class="detail-list" id="detailList">
+            <li>输入：每个 query 的 rerank 完整结果。</li>
+            <li>处理：按 threshold 和 step_beta 截断。</li>
+            <li>输出：最优组合、前 10 组合、可选 CSV/JSON。</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="function" class="section card">
+      <div class="section-head">
+        <div>
+          <h2>3. 把函数拆成 6 个动作</h2>
+          <p>
+            这段代码的核心不是算法很复杂，而是“批量实验”的组织方式很清楚。
+          </p>
+        </div>
+        <span class="badge">对应 L422-L478</span>
+      </div>
+
+      <div class="split">
+        <ul class="explain-list">
+          <li>
+            <strong>生成候选参数</strong>
+            <span><code>frange_int</code> 根据最小值、最大值、步长生成 <code>thresholds</code> 和 <code>step_betas</code>。</span>
+          </li>
+          <li>
+            <strong>双层循环试参数</strong>
+            <span>外层遍历阈值，内层遍历 beta。每一个组合都代表一次独立实验。</span>
+          </li>
+          <li>
+            <strong>逐 query 截断</strong>
+            <span>对每个 query 的 <code>reranked_full_results</code> 调用 <code>postprocess_truncate</code>。</span>
+          </li>
+          <li>
+            <strong>计算指标</strong>
+            <span>把截断后的 <code>f_id</code> 和标准答案 <code>relevant_ids</code> 对比，得到 MAP、Recall 等指标。</span>
+          </li>
+          <li>
+            <strong>汇总并排序</strong>
+            <span><code>summarize_strategy</code> 跨 query 汇总，再按 <code>grid_objective</code> 找最佳组合。</span>
+          </li>
+          <li>
+            <strong>保存结果</strong>
+            <span>如果配置了输出路径，就保存完整表格 CSV 和 JSON 结构化报告。</span>
+          </li>
+        </ul>
+
+        <pre class="code"><code><span class="comment"># 这段函数的伪代码骨架</span>
+thresholds = 生成阈值列表
+step_betas = 生成 beta 列表
+rows = []
+
+for threshold in thresholds:
+    for step_beta in step_betas:
+        pseudo_rows = []
+        final_counts = []
+
+        for row in per_query_rows:
+            标准答案 = set(row["relevant_ids"])
+            截断结果 = postprocess_truncate(
+                row["reranked_full_results"],
+                threshold,
+                step_beta,
+            )
+            指标 = compute_metrics(截断结果的 f_id, 标准答案, ks)
+            pseudo_rows.append(指标)
+
+        combo = summarize_strategy(pseudo_rows)
+        combo["threshold"] = threshold
+        combo["step_beta"] = step_beta
+        rows.append(combo)
+
+rows.sort(key=目标指标, reverse=True)
+best = rows[0]
+保存 CSV / JSON
+return best / top10 / 输出路径</code></pre>
+      </div>
+    </section>
+
+    <section id="simulator" class="section card">
+      <div class="section-head">
+        <div>
+          <h2>4. 参数调节器：理解两个旋钮</h2>
+          <p>
+            这个小工具不复现真实公式，只帮助你建立直觉：阈值越高，保留结果通常越少；
+            beta 越敏感，分数下降时越容易提前截断。
+          </p>
+        </div>
+        <span class="badge">教学模拟</span>
+      </div>
+
+      <div class="simulator">
+        <div class="control">
+          <label for="thresholdRange">
+            <span>threshold 阈值</span>
+            <span id="thresholdValue">0.10</span>
+          </label>
+          <input id="thresholdRange" type="range" min="0" max="0.3" step="0.01" value="0.10">
+        </div>
+        <div class="control">
+          <label for="betaRange">
+            <span>step_beta 步进敏感度</span>
+            <span id="betaValue">0.50</span>
+          </label>
+          <input id="betaRange" type="range" min="0.1" max="0.9" step="0.05" value="0.50">
+        </div>
+        <div class="sim-output" id="simOutput">
+          当前参数偏平衡：大概率会保留中等数量结果，用 MAP 和 Recall 一起观察。
+        </div>
+      </div>
+    </section>
+
+    <section id="outputs" class="section card">
+      <div class="section-head">
+        <div>
+          <h2>5. 返回值和输出文件怎么看</h2>
+          <p>
+            这个函数最后返回的是一个“实验摘要”，方便主流程打印、保存或进一步画图。
+          </p>
+        </div>
+        <span class="badge">best 是重点</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>含义</th>
+              <th>你该怎么看</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>objective</code></td>
+              <td>网格搜索优化目标，例如 <code>map@10</code>。</td>
+              <td>确认当前是在优化排序质量、召回率，还是其他指标。</td>
+            </tr>
+            <tr>
+              <td><code>combo_count</code></td>
+              <td>总共尝试了多少组参数。</td>
+              <td>等于 <code>len(thresholds) * len(step_betas)</code>。</td>
+            </tr>
+            <tr>
+              <td><code>best</code></td>
+              <td>排序后的第一名参数组合。</td>
+              <td>通常就是你下一次正式评测或上线实验要优先尝试的配置。</td>
+            </tr>
+            <tr>
+              <td><code>top10</code></td>
+              <td>表现最好的前 10 组参数。</td>
+              <td>如果第一名不稳定，可以看前 10 是否集中在相近区间。</td>
+            </tr>
+            <tr>
+              <td><code>output_csv/json</code></td>
+              <td>可选输出路径。</td>
+              <td>CSV 适合表格分析；JSON 适合程序继续读取。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+
+    <p class="footer">
+      本页是一个离线教学页面，不依赖外部 CDN。适合保存、分享和后续继续补充完整源码细节。
+    </p>
+  </main>
+
+  <script>
+    const details = {
+      cli: {
+        title: "bash.sh / 命令行参数",
+        desc: "外部入口负责开启 grid search，并指定 objective、threshold 范围、step_beta 范围、日志级别和可视化数量。",
+        list: ["它决定要试哪些参数。", "它不负责具体计算，只把配置交给 Python 评测脚本。", "当前 bash.sh 指向的外部脚本在本地没有找到。"]
+      },
+      main: {
+        title: "主评测流程",
+        desc: "完整源码中应有一个主流程，负责读取 query、标注数据、候选视频，并组织召回、rerank 和评测。",
+        list: ["本页无法确认主流程真实代码位置。", "从 run_grid_search 的入参看，主流程会先构造 per_query_rows。", "grid search 是主流程后段的调参环节。"]
+      },
+      retrieval: {
+        title: "召回 + rerank",
+        desc: "视频搜索通常先召回一批候选视频，再用更精细的模型或规则重新排序。",
+        list: ["召回解决“找得到”。", "rerank 解决“排得好”。", "run_grid_search 不重新做这两步。"]
+      },
+      rows: {
+        title: "per_query_rows",
+        desc: "这是 run_grid_search 最核心的输入。它按 query 存放标准答案、完整 rerank 结果和相关视频数量。",
+        list: ["row['relevant_ids'] 是标准答案。", "row['reranked_full_results'] 是已经排好的候选结果。", "row['relevant_count'] 用于后续汇总。"]
+      },
+      grid: {
+        title: "run_grid_search",
+        desc: "这段函数像一台离线实验机：把每一组 threshold 和 step_beta 都试一遍，再按目标指标排序。",
+        list: ["双层循环枚举参数。", "内层对每个 query 评测一次。", "最后返回 best、top10 和输出路径。"]
+      },
+      metric: {
+        title: "compute_metrics",
+        desc: "负责比较预测结果和标准答案，计算 recall@K、map@K 等指标。",
+        list: ["输入是截断后的 f_id 列表。", "标准答案被转成 set，便于快速判断命中。", "ks 决定计算 @1、@5、@10 等哪些位置。"]
+      },
+      summary: {
+        title: "summarize_strategy",
+        desc: "把所有 query 的单次指标汇总成一组整体指标，方便不同参数组合之间比较。",
+        list: ["它让每组参数都有同样格式的结果。", "combo 会附加 threshold、step_beta、结果数量统计。", "排序时会使用 combo 里的 objective 字段。"]
+      },
+      output: {
+        title: "best / top10 / CSV / JSON",
+        desc: "函数不仅返回最优结果，也可以把全部实验结果保存下来，方便做表格分析或画图。",
+        list: ["best 是第一推荐参数。", "top10 用来观察稳定区间。", "all_results 适合后续分析参数趋势。"]
+      },
+      args: {
+        title: "args",
+        desc: "命令行参数集合。这里主要读取 grid 阈值范围、beta 范围、优化目标和输出文件路径。",
+        list: ["grid_objective 必须存在于 combo 中。", "grid_output_csv 控制是否保存表格。", "grid_output_json 控制是否保存结构化报告。"]
+      },
+      ks: {
+        title: "ks",
+        desc: "指标的 K 值列表。例如 [1, 5, 10] 表示同时观察前 1、前 5、前 10 的质量。",
+        list: ["搜索评测常看 @10。", "不同 K 可以反映不同用户浏览深度。", "排序时默认还用 map@10、recall@10 做兜底比较。"]
+      },
+      frange: {
+        title: "frange_int",
+        desc: "用于把 min、max、step 转换成可循环的参数列表。",
+        list: ["例如 0.0 到 0.2，步长 0.01。", "这样可以避免手写大量参数。", "combo_count 由两个参数列表长度相乘得到。"]
+      },
+      truncate: {
+        title: "postprocess_truncate",
+        desc: "按当前 threshold 和 step_beta 对完整 rerank 结果做截断，决定最终保留多少条。",
+        list: ["截断太狠，Recall 可能下降。", "截断太松，结果可能变多但噪声也变多。", "真实公式需要完整源码确认。"]
+      },
+      relevant: {
+        title: "relevant_ids",
+        desc: "人工标注或评测集给出的相关视频 ID，是判断搜索是否命中的标准答案。",
+        list: ["代码里会转成 set。", "compute_metrics 用它判断 f_id 是否命中。", "没有标准答案就无法做离线评测。"]
+      },
+      reranked: {
+        title: "reranked_full_results",
+        desc: "已经完成 rerank 的完整候选列表。grid search 只复用它，不再请求线上 rerank。",
+        list: ["这是节省成本的关键。", "每个元素至少需要包含 f_id。", "通常还会包含 rerank 分数。"]
+      },
+      ids: {
+        title: "f_id list",
+        desc: "截断后的结果会被转换成视频 ID 列表，用于和标准答案集合比较。",
+        list: ["代码写法是 [x['f_id'] for x in truncated]。", "评测函数不需要完整对象，只需要排序后的 ID。", "顺序很重要，因为 MAP 会看相关结果排得是否靠前。"]
+      },
+      pseudo: {
+        title: "pseudo_rows",
+        desc: "这是为了复用已有汇总函数而临时构造的数据结构。",
+        list: ["它包含 relevant_count。", "它把当前组合的指标放到 strategy_metrics['grid']。", "名字 pseudo 表示它不是原始评测数据。"]
+      }
+    };
+
+    const titleEl = document.getElementById("detailTitle");
+    const descEl = document.getElementById("detailDesc");
+    const listEl = document.getElementById("detailList");
+
+    function showDetail(id) {
+      const item = details[id] || details.grid;
+      titleEl.textContent = item.title;
+      descEl.textContent = item.desc;
+      listEl.innerHTML = item.list.map(text => `<li>${text}</li>`).join("");
+    }
+
+    document.querySelectorAll(".node").forEach(node => {
+      node.addEventListener("click", () => showDetail(node.dataset.node));
+    });
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(item => item.classList.remove("active"));
+        document.querySelectorAll(".diagram").forEach(item => item.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    const thresholdRange = document.getElementById("thresholdRange");
+    const betaRange = document.getElementById("betaRange");
+    const thresholdValue = document.getElementById("thresholdValue");
+    const betaValue = document.getElementById("betaValue");
+    const simOutput = document.getElementById("simOutput");
+
+    function updateSimulator() {
+      const threshold = Number(thresholdRange.value);
+      const beta = Number(betaRange.value);
+      thresholdValue.textContent = threshold.toFixed(2);
+      betaValue.textContent = beta.toFixed(2);
+
+      let style = "偏平衡";
+      let advice = "大概率会保留中等数量结果，用 MAP 和 Recall 一起观察。";
+      if (threshold >= 0.22 || beta >= 0.75) {
+        style = "偏严格";
+        advice = "可能更早截断，结果更干净，但要警惕 Recall 下降。";
+      } else if (threshold <= 0.06 && beta <= 0.25) {
+        style = "偏宽松";
+        advice = "可能保留更多候选，Recall 可能更稳，但排序噪声也可能增加。";
+      }
+
+      simOutput.innerHTML = `当前参数<strong>${style}</strong>：${advice}`;
+    }
+
+    thresholdRange.addEventListener("input", updateSimulator);
+    betaRange.addEventListener("input", updateSimulator);
+    updateSimulator();
+  </script>
+</body>
+</html>

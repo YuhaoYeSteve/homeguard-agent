@@ -1,0 +1,1 @@
+python3 /Users/bytedance/Yingshi_search/eval_yingshi_retrieval_rerank.py --grid-search --grid-objective map@10 --grid-threshold-min 0.0 --grid-threshold-max 0.2 --grid-threshold-step 0.01 --grid-step-beta-min 0.1 --grid-step-beta-max 0.9 --grid-step-beta-step 0.05 --log-level INFO --viz-top-n 10

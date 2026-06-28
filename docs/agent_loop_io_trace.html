@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Loop 输入输出学习页</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --paper: #ffffff;
+      --soft: #f6f8fb;
+      --soft2: #eef1f5;
+      --ink: #141b2d;
+      --muted: #667085;
+      --line: #d7deea;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --purple: #7c3aed;
+      --purple-soft: #ede9fe;
+      --green: #059669;
+      --green-soft: #d1fae5;
+      --orange: #ea580c;
+      --orange-soft: #ffedd5;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --code: #111827;
+      --code-ink: #e5e7eb;
+      --shadow: 0 18px 48px rgba(15, 23, 42, 0.10);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.13), transparent 34%),
+        radial-gradient(circle at 88% 4%, rgba(124, 58, 237, 0.12), transparent 32%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: var(--mono); }
+
+    .shell {
+      width: min(1360px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(14px);
+    }
+
+    .nav h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav a {
+      display: block;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: #344054;
+      font-size: 14px;
+    }
+
+    .nav a:hover {
+      background: var(--soft);
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    .main { min-width: 0; }
+    .hero,
+    .section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 36px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -110px;
+      top: -120px;
+      width: 360px;
+      height: 360px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(37,99,235,.16), rgba(124,58,237,.13));
+    }
+
+    .hero > * { position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--soft);
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 4.8vw, 64px);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 27px;
+      letter-spacing: -.03em;
+    }
+
+    h3 { margin: 22px 0 10px; font-size: 19px; }
+    p { color: #3d475a; }
+    .hero p { max-width: 860px; margin: 0; font-size: 18px; }
+    .section { margin-top: 24px; padding: 28px; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3,
+    .card h4 { margin-top: 0; }
+    .muted { color: var(--muted); }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .tag-blue { background: var(--blue-soft); color: var(--blue); }
+    .tag-purple { background: var(--purple-soft); color: var(--purple); }
+    .tag-green { background: var(--green-soft); color: var(--green); }
+    .tag-orange { background: var(--orange-soft); color: var(--orange); }
+    .tag-red { background: var(--red-soft); color: var(--red); }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #f8fafc);
+      padding: 18px;
+      overflow-x: auto;
+    }
+
+    .core-map {
+      min-width: 860px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .node {
+      position: relative;
+      min-height: 128px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 2px solid var(--line);
+      background: #fff;
+    }
+
+    .node::after {
+      content: "→";
+      position: absolute;
+      right: -18px;
+      top: 42%;
+      font-weight: 900;
+      color: var(--muted);
+      font-size: 22px;
+      z-index: 2;
+    }
+    .node:last-child::after { content: ""; }
+    .node strong { display: block; margin-bottom: 6px; }
+    .node small { display: block; color: var(--muted); line-height: 1.45; }
+
+    .io-svg {
+      width: 100%;
+      min-width: 880px;
+      height: 430px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #344054;
+      cursor: pointer;
+      padding: 9px 14px;
+      font: inherit;
+    }
+    .tab.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .step-label {
+      background: var(--soft2);
+      padding: 16px;
+      border-right: 1px solid var(--line);
+    }
+    .step-label strong { display: block; }
+    .step-body { padding: 16px; min-width: 0; }
+
+    pre {
+      margin: 10px 0 0;
+      padding: 16px;
+      overflow-x: auto;
+      border-radius: 16px;
+      background: var(--code);
+      color: var(--code-ink);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .mini-code {
+      padding: 2px 6px;
+      border-radius: 7px;
+      background: #edf2f7;
+      color: #1f2937;
+    }
+
+    .callout {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--blue);
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+    .callout.orange { border-left-color: var(--orange); background: #fff7ed; }
+    .callout.green { border-left-color: var(--green); background: #ecfdf5; }
+
+    .two-col-code {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      background: var(--soft2);
+      font-weight: 700;
+    }
+    details > div { padding: 14px 16px 16px; }
+
+    .matrix {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: var(--soft2);
+      color: #344054;
+      font-size: 13px;
+    }
+    tr:last-child td { border-bottom: 0; }
+
+    .quiz label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 10px;
+    }
+    .quiz input { width: 18px; height: 18px; margin-top: 4px; }
+
+    .footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 0 0;
+    }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; width: min(100% - 24px, 980px); }
+      .nav { position: static; }
+      .grid-2, .grid-3, .two-col-code { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1fr; }
+      .step-label { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="nav">
+      <h2>Agent I/O Trace</h2>
+      <a href="#goal">概览：这页只看什么</a>
+      <a href="#core">1. 核心模式</a>
+      <a href="#modules">2. 模块依赖图</a>
+      <a href="#io">3. 输入输出循环图</a>
+      <a href="#message">4. 模型输入长什么样</a>
+      <a href="#system-prompt">5. System Prompt 原文</a>
+      <a href="#examples">6. 三个完整例子</a>
+      <a href="#tool">7. 工具怎么执行</a>
+      <a href="#mental">8. 心智模型</a>
+      <a href="#checkpoint">9. 检查点</a>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="goal">
+        <span class="eyebrow">只讲 Agent 内核：Model Input → JSON Output → Tool → Observation → Final</span>
+        <h1>模型到底输入什么、输出什么？</h1>
+        <p>
+          这页不讲前端，也不讲 HTTP 调用。我们只盯住 Agent Loop 内部的数据变化：
+          第一次模型看到什么，为什么输出 <code>final_answer</code> 或 <code>tool_call</code>；
+          工具如何执行；工具结果如何变成下一次模型输入；最终回答从哪里产生。
+        </p>
+        <div class="chips">
+          <span class="chip">架构类型：轻量 JSON 版 ReAct</span>
+          <span class="chip">循环上限：<code>max_steps = 3</code></span>
+          <span class="chip">决策输出：<code>final_answer</code> / <code>tool_call</code></span>
+          <a class="chip" href="./agent_loop_io_trace.html" download>下载本页 HTML</a>
+        </div>
+      </section>
+
+      <section class="section" id="core">
+        <h2>1. 核心模式：结构化 ReAct</h2>
+        <p>
+          当前项目不是让模型自由输出 <code>Thought / Action / Observation</code> 文本，而是要求模型只输出 JSON。
+          这使后端可以稳定解析、校验和执行工具。
+        </p>
+
+        <div class="diagram">
+          <div class="core-map" aria-label="项目架构图">
+            <div class="node" style="border-color: var(--purple); background: var(--purple-soft);">
+              <strong>Reason</strong>
+              <small>模型读取 system、tool spec、历史和用户问题，判断下一步。</small>
+            </div>
+            <div class="node" style="border-color: var(--blue); background: var(--blue-soft);">
+              <strong>JSON Decision</strong>
+              <small>只允许输出 <code>final_answer</code> 或 <code>tool_call</code>。</small>
+            </div>
+            <div class="node" style="border-color: var(--orange); background: var(--orange-soft);">
+              <strong>Act</strong>
+              <small>后端根据 tool_name 执行工具，不让模型直接碰外部系统。</small>
+            </div>
+            <div class="node" style="border-color: var(--green); background: var(--green-soft);">
+              <strong>Observe / Repeat</strong>
+              <small>工具结果写回 role="tool"，再喂给模型，直到 final。</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>一句话：</strong>
+          模型是“决策器”，后端是“执行器”。模型只说下一步要做什么，后端负责判断、执行、记录和再次喂回。
+        </div>
+      </section>
+
+      <section class="section" id="modules">
+        <h2>2. 模块依赖图：只看 Agent 内核</h2>
+        <p>下面这些文件构成了 Agent 的最小闭环。</p>
+        <div class="matrix" aria-label="模块依赖图">
+          <table>
+            <thead>
+              <tr>
+                <th>层</th>
+                <th>文件</th>
+                <th>负责什么</th>
+                <th>学习重点</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="tag tag-purple">Prompt</span></td>
+                <td><a href="../backend/app/agent/prompts.py">backend/app/agent/prompts.py</a></td>
+                <td>告诉模型什么时候直接回答、什么时候调用工具、输出什么 JSON。</td>
+                <td>模型第一步判断完全受这里影响。</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-blue">Loop</span></td>
+                <td><a href="../backend/app/agent/loop.py#L35-L99">backend/app/agent/loop.py:35-99</a></td>
+                <td>控制“模型 → 工具 → 观察 → 模型”的循环。</td>
+                <td>看 <code>raw_step.get("type")</code> 分支。</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-green">Schema</span></td>
+                <td><a href="../backend/app/agent/schemas.py#L11-L76">backend/app/agent/schemas.py:11-76</a></td>
+                <td>定义 ChatMessage、AgentToolCall、AgentFinalAnswer、ToolEvent、ChatResponse。</td>
+                <td>理解数据结构比理解代码细节更重要。</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-orange">Tool</span></td>
+                <td><a href="../backend/app/agent/tool_registry.py#L10-L58">backend/app/agent/tool_registry.py:10-58</a></td>
+                <td>按 tool_name 找到工具并执行，统一返回 result + ToolEvent。</td>
+                <td>工具失败不会立刻炸掉 Loop，而是变成观察结果。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="io">
+        <h2>3. 输入输出循环图</h2>
+        <p>这个图只展示 Agent 内部的数据流，不包含前后端。</p>
+        <div class="diagram" aria-label="数据流程图">
+          <svg class="io-svg" viewBox="0 0 1040 430" role="img" aria-label="Agent Loop 输入输出数据流程图">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#667085"></path>
+              </marker>
+              <style>
+                .box { fill: #fff; stroke: #d7deea; stroke-width: 2; rx: 18; }
+                .purple { fill: #ede9fe; stroke: #7c3aed; }
+                .blue { fill: #dbeafe; stroke: #2563eb; }
+                .orange { fill: #ffedd5; stroke: #ea580c; }
+                .green { fill: #d1fae5; stroke: #059669; }
+                .txt { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #141b2d; }
+                .small { font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475467; }
+                .edge { stroke: #667085; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+                .dash { stroke-dasharray: 7 7; }
+              </style>
+            </defs>
+            <rect x="34" y="42" width="205" height="94" class="box blue"></rect>
+            <text x="58" y="78" class="txt">模型输入 #1</text>
+            <text x="58" y="104" class="small">system prompt</text>
+            <text x="58" y="123" class="small">tool spec + history + user</text>
+
+            <rect x="304" y="42" width="205" height="94" class="box purple"></rect>
+            <text x="328" y="78" class="txt">模型输出 #1</text>
+            <text x="328" y="104" class="small">final_answer</text>
+            <text x="328" y="123" class="small">或 tool_call</text>
+
+            <rect x="574" y="42" width="205" height="94" class="box orange"></rect>
+            <text x="598" y="78" class="txt">工具执行</text>
+            <text x="598" y="104" class="small">ToolRegistry.run()</text>
+            <text x="598" y="123" class="small">result + ToolEvent</text>
+
+            <rect x="834" y="42" width="170" height="94" class="box green"></rect>
+            <text x="858" y="78" class="txt">直接结束</text>
+            <text x="858" y="104" class="small">如果是 final_answer</text>
+            <text x="858" y="123" class="small">返回给调用方</text>
+
+            <rect x="574" y="238" width="205" height="94" class="box green"></rect>
+            <text x="598" y="274" class="txt">观察回填</text>
+            <text x="598" y="300" class="small">append assistant tool_call</text>
+            <text x="598" y="319" class="small">append tool observation</text>
+
+            <rect x="304" y="238" width="205" height="94" class="box blue"></rect>
+            <text x="328" y="274" class="txt">模型输入 #2</text>
+            <text x="328" y="300" class="small">原 messages</text>
+            <text x="328" y="319" class="small">+ 工具调用 + 工具结果</text>
+
+            <rect x="34" y="238" width="205" height="94" class="box purple"></rect>
+            <text x="58" y="274" class="txt">模型输出 #2</text>
+            <text x="58" y="300" class="small">通常为 final_answer</text>
+            <text x="58" y="319" class="small">也可能继续 tool_call</text>
+
+            <path d="M239 89 L304 89" class="edge"></path>
+            <path d="M509 89 L574 89" class="edge"></path>
+            <path d="M509 74 C620 10 770 12 834 70" class="edge"></path>
+            <path d="M676 136 L676 238" class="edge"></path>
+            <path d="M574 285 L509 285" class="edge"></path>
+            <path d="M304 285 L239 285" class="edge"></path>
+            <path d="M136 238 C118 172 160 146 304 112" class="edge dash"></path>
+            <text x="770" y="212" class="small">最多 3 次模型决策</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="section" id="message">
+        <h2>4. 模型第一次输入长什么样</h2>
+        <p>
+          <code>AgentLoop._build_initial_messages()</code> 会把四类信息拼起来。
+          真实代码位置：<a href="../backend/app/agent/loop.py#L119-L130">loop.py:119-130</a>。
+        </p>
+        <pre><code>[
+  {
+    "role": "system",
+    "content": "你是安防 C 端 App 内的智能 Agent。你必须根据用户意图选择下一步：..."
+  },
+  {
+    "role": "system",
+    "content": "可用工具：- web_search ... - video_search ... - iot_control ..."
+  },
+  {
+    "role": "assistant",
+    "content": "上一轮助手回答，可为空"
+  },
+  {
+    "role": "user",
+    "content": "用户这次说的话"
+  }
+]</code></pre>
+
+        <div class="callout orange">
+          <strong>重点：</strong>
+          模型不是只看到用户一句话，它还看到“自己是什么角色”和“能用哪些工具”。这两条 system 消息决定了模型会输出普通回答还是工具调用 JSON。
+        </div>
+      </section>
+
+      <section class="section" id="system-prompt">
+        <h2>5. System Prompt 原文</h2>
+        <p>
+          下面是当前项目里真正给模型的核心系统提示词。
+          代码位置：<a href="../backend/app/agent/prompts.py#L1-L25">backend/app/agent/prompts.py</a>。
+          在 <a href="../backend/app/agent/loop.py#L119-L130">AgentLoop._build_initial_messages()</a> 中，它会作为第一条 <code>role="system"</code> 消息进入模型。
+        </p>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <span class="tag tag-purple">SYSTEM_PROMPT</span>
+            <pre><code>你是安防 C 端 App 内的智能 Agent。
+你必须根据用户意图选择下一步：
+1. 如果只是闲聊或普通问答，输出 final_answer。
+2. 如果需要实时网络信息，调用 web_search。
+3. 如果用户要查监控视频内容，调用 video_search。
+4. 如果用户要移动摄像头、转向、调整角度，调用 iot_control，action=move。
+5. 如果用户要打开隐私遮蔽、遮挡、关闭画面，调用 iot_control，action=privacy_mask。
+6. 如果用户要打开摄像头、恢复画面、关闭隐私遮蔽，调用 iot_control，action=none，target=camera_on。
+
+你必须只输出 JSON，不要输出 Markdown，不要输出解释文字。
+工具调用格式：
+{"type":"tool_call","tool_name":"iot_control","arguments":{"device_id":"camera_living_room","action":"move","target":"front_door"},"reason":"..."}
+{"type":"tool_call","tool_name":"iot_control","arguments":{"device_id":"camera_living_room","action":"none","target":"camera_on"},"reason":"..."}
+
+最终回答格式：
+{"type":"final_answer","answer":"...","iot_action":"none"}</code></pre>
+          </div>
+
+          <div class="card">
+            <span class="tag tag-orange">TOOL_SPEC</span>
+            <pre><code>可用工具：
+- web_search: 输入 {"query": "...", "top_k": 5}
+- video_search: 输入 {"query": "...", "limit": 10}
+- iot_control: 输入 {"device_id": "camera_living_room", "action": "move|privacy_mask|none", "target": "..."}；action=none 用于打开摄像头或解除隐私遮蔽。</code></pre>
+          </div>
+        </div>
+
+        <h3>这段 Prompt 怎么控制 Agent？</h3>
+        <div class="matrix">
+          <table>
+            <thead>
+              <tr>
+                <th>Prompt 规则</th>
+                <th>用户表达</th>
+                <th>模型应该输出</th>
+                <th>后端下一步</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>闲聊或普通问答</td>
+                <td>你好 / 你能做什么</td>
+                <td><code>{"type":"final_answer", ...}</code></td>
+                <td>AgentLoop 直接返回，不调用工具。</td>
+              </tr>
+              <tr>
+                <td>实时网络信息</td>
+                <td>今天深圳天气怎么样</td>
+                <td><code>{"type":"tool_call","tool_name":"web_search", ...}</code></td>
+                <td>ToolRegistry 执行 <code>web_search</code>，再把结果回填给模型。</td>
+              </tr>
+              <tr>
+                <td>查监控视频内容</td>
+                <td>找一下有人经过门口的视频</td>
+                <td><code>{"type":"tool_call","tool_name":"video_search", ...}</code></td>
+                <td>执行 VikingDB 视频检索，返回 <code>VideoSearchResult[]</code>。</td>
+              </tr>
+              <tr>
+                <td>移动摄像头</td>
+                <td>把摄像头转向门口</td>
+                <td><code>{"type":"tool_call","tool_name":"iot_control","arguments":{"action":"move", ...}}</code></td>
+                <td>执行 IoT 模拟控制，更新 <code>iot_state</code>。</td>
+              </tr>
+              <tr>
+                <td>打开/关闭隐私遮蔽</td>
+                <td>关闭画面 / 恢复画面</td>
+                <td><code>privacy_mask</code> 或 <code>action=none,target=camera_on</code></td>
+                <td>执行 IoT 模拟控制，并把状态作为观察回填。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout orange">
+          <strong>读 Prompt 的关键：</strong>
+          这不是让模型“自由聊天”的提示词，而是一个路由规则表。它把用户意图映射到两类 JSON：
+          <code>final_answer</code> 表示直接结束，<code>tool_call</code> 表示交给后端工具执行。
+        </div>
+      </section>
+
+      <section class="section" id="examples">
+        <h2>6. 三个完整例子</h2>
+        <p>点击切换场景。每个场景都按“模型输入 → 模型输出 → 工具执行 → 再输入 → 最终输出”展示。</p>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="chat">例子 A：闲聊</button>
+          <button class="tab" data-tab="iot">例子 B：摄像头控制</button>
+          <button class="tab" data-tab="video">例子 C：检索视频</button>
+        </div>
+
+        <div class="panel active" id="panel-chat">
+          <div class="timeline">
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-blue">Input #1</span>
+                <strong>第一次喂给模型</strong>
+              </div>
+              <div class="step-body">
+                <p>用户只是打招呼，不需要外部信息，也不需要控制设备。</p>
+                <pre><code>[
+  {"role": "system", "content": "你是安防 C 端 App 内的智能 Agent..."},
+  {"role": "system", "content": "可用工具：web_search / video_search / iot_control"},
+  {"role": "user", "content": "你好"}
+]</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-purple">Output #1</span>
+                <strong>模型直接回答</strong>
+              </div>
+              <div class="step-body">
+                <p>模型输出 <code>final_answer</code>，AgentLoop 直接结束，不调用工具。</p>
+                <pre><code>{
+  "type": "final_answer",
+  "answer": "你好，我可以帮你查看监控视频、搜索信息，或控制摄像头。",
+  "iot_action": "none"
+}</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-green">End</span>
+                <strong>没有第二轮</strong>
+              </div>
+              <div class="step-body">
+                <p><code>step_type == "final_answer"</code> 时，代码直接构造 <code>ChatResponse</code> 返回。工具事件为空。</p>
+                <pre><code>{
+  "assistant_message": "你好，我可以帮你查看监控视频、搜索信息，或控制摄像头。",
+  "iot_state": {"iot_action": "none", "status": "idle"},
+  "video_results": [],
+  "tool_events": []
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-iot">
+          <div class="timeline">
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-blue">Input #1</span>
+                <strong>第一次喂给模型</strong>
+              </div>
+              <div class="step-body">
+                <p>用户表达了一个设备控制意图：摄像头转向门口。Prompt 要求这种情况调用 <code>iot_control</code>。</p>
+                <pre><code>[
+  {"role": "system", "content": "如果用户要移动摄像头、转向、调整角度，调用 iot_control，action=move。"},
+  {"role": "system", "content": "iot_control: 输入 {device_id, action, target}"},
+  {"role": "user", "content": "把摄像头转向门口"}
+]</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-purple">Output #1</span>
+                <strong>模型输出工具调用</strong>
+              </div>
+              <div class="step-body">
+                <p>模型不应该自己说“已转向”，因为它还没执行工具。它只输出下一步动作。</p>
+                <pre><code>{
+  "type": "tool_call",
+  "tool_name": "iot_control",
+  "arguments": {
+    "device_id": "camera_living_room",
+    "action": "move",
+    "target": "front_door"
+  },
+  "reason": "用户要求摄像头转向门口"
+}</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-orange">Tool</span>
+                <strong>后端执行工具</strong>
+              </div>
+              <div class="step-body">
+                <p>
+                  <code>ToolRegistry.run("iot_control", arguments, step=1)</code>
+                  找到 <code>IotControlTool</code>，用 <code>IotControlCommand</code> 校验参数，然后返回模拟成功状态。
+                </p>
+                <pre><code>{
+  "result": {
+    "iot_action": "move",
+    "device_id": "camera_living_room",
+    "target": "front_door",
+    "status": "simulated_success",
+    "raw_command": {
+      "tool": "iot_control",
+      "device_id": "camera_living_room",
+      "action": "move",
+      "target": "front_door",
+      "parameters": {},
+      "confidence": 1.0,
+      "reason": ""
+    }
+  },
+  "event": {
+    "step": 1,
+    "tool_name": "iot_control",
+    "input": {"device_id": "camera_living_room", "action": "move", "target": "front_door"},
+    "status": "success",
+    "elapsed_ms": 1
+  }
+}</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-green">Observe</span>
+                <strong>观察回填</strong>
+              </div>
+              <div class="step-body">
+                <p>AgentLoop 会追加两条消息，然后再次请求模型。</p>
+                <pre><code>[
+  "...前面的 system 和 user 消息...",
+  {
+    "role": "assistant",
+    "content": "{\"type\":\"tool_call\",\"tool_name\":\"iot_control\",\"arguments\":{...},\"reason\":\"...\"}"
+  },
+  {
+    "role": "tool",
+    "content": "{\"tool_name\":\"iot_control\",\"status\":\"success\",\"result\":{\"iot_action\":\"move\",...},\"event\":{...}}"
+  }
+]</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-purple">Output #2</span>
+                <strong>模型最终回答</strong>
+              </div>
+              <div class="step-body">
+                <p>这次模型已经看到了工具成功观察，所以可以对用户说结果。</p>
+                <pre><code>{
+  "type": "final_answer",
+  "answer": "摄像头已转向门口。",
+  "iot_action": "move"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-video">
+          <div class="timeline">
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-blue">Input #1</span>
+                <strong>第一次喂给模型</strong>
+              </div>
+              <div class="step-body">
+                <p>用户要查监控内容。Prompt 规定“查监控视频内容”时调用 <code>video_search</code>。</p>
+                <pre><code>[
+  {"role": "system", "content": "如果用户要查监控视频内容，调用 video_search。"},
+  {"role": "system", "content": "video_search: 输入 {\"query\": \"...\", \"limit\": 10}"},
+  {"role": "user", "content": "帮我找一下昨天晚上有人经过门口的视频"}
+]</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-purple">Output #1</span>
+                <strong>模型输出检索请求</strong>
+              </div>
+              <div class="step-body">
+                <p>模型把自然语言问题压成工具参数。注意它没有自己编造视频结果。</p>
+                <pre><code>{
+  "type": "tool_call",
+  "tool_name": "video_search",
+  "arguments": {
+    "query": "昨天晚上 有人 经过 门口",
+    "limit": 10
+  },
+  "reason": "用户要查找监控视频内容"
+}</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-orange">Tool</span>
+                <strong>VikingDB 检索</strong>
+              </div>
+              <div class="step-body">
+                <p>
+                  <code>ToolRegistry</code> 找到 <code>VikingVideoSearchTool</code>。
+                  工具用 query 构造 VikingDB multi_modal search 请求，解析字段
+                  <code>__AUTO_ID__</code>、<code>title_desc_obj_event</code>、<code>video_id</code>。
+                </p>
+                <pre><code>{
+  "result": [
+    {
+      "f_id": "video_20260625_001",
+      "f_text": "门口摄像头：夜间 22:18 有人从画面右侧经过门口区域",
+      "search_score": 0.86,
+      "ann_score": 0.82,
+      "metadata": {
+        "auto_id": "12345",
+        "video_id": "video_20260625_001"
+      }
+    },
+    {
+      "f_id": "video_20260625_007",
+      "f_text": "门口摄像头：夜间 23:41 人影短暂经过",
+      "search_score": 0.79,
+      "ann_score": 0.75,
+      "metadata": {
+        "auto_id": "12351",
+        "video_id": "video_20260625_007"
+      }
+    }
+  ],
+  "event": {
+    "step": 1,
+    "tool_name": "video_search",
+    "input": {"query": "昨天晚上 有人 经过 门口", "limit": 10},
+    "status": "success",
+    "elapsed_ms": 420
+  }
+}</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-green">Observe</span>
+                <strong>结果回填模型</strong>
+              </div>
+              <div class="step-body">
+                <p>
+                  这一步很关键：检索结果不是直接给用户，而是先作为 <code>role="tool"</code> 的 observation 进入下一轮模型输入。
+                  模型再把它整理成自然语言。
+                </p>
+                <pre><code>[
+  "...前面的 system 和 user 消息...",
+  {
+    "role": "assistant",
+    "content": "{\"type\":\"tool_call\",\"tool_name\":\"video_search\",\"arguments\":{\"query\":\"昨天晚上 有人 经过 门口\",\"limit\":10},\"reason\":\"...\"}"
+  },
+  {
+    "role": "tool",
+    "content": "{\"tool_name\":\"video_search\",\"status\":\"success\",\"result\":[{\"f_id\":\"video_20260625_001\",...}],\"event\":{...}}"
+  }
+]</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-label">
+                <span class="tag tag-purple">Output #2</span>
+                <strong>模型总结结果</strong>
+              </div>
+              <div class="step-body">
+                <p>模型基于检索结果生成最终回答。结构化视频结果也会保留在 <code>video_results</code> 里。</p>
+                <pre><code>{
+  "type": "final_answer",
+  "answer": "我找到 2 条相关视频：1）22:18 门口有人从右侧经过；2）23:41 有人影短暂经过。你可以优先查看 video_20260625_001。",
+  "iot_action": "none"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="tool">
+        <h2>7. 工具到底怎么执行</h2>
+        <p>模型只给出工具名和参数；真正的工具调用由后端完成。</p>
+
+        <div class="two-col-code">
+          <div class="card">
+            <span class="tag tag-purple">模型输出</span>
+            <pre><code>{
+  "type": "tool_call",
+  "tool_name": "iot_control",
+  "arguments": {
+    "device_id": "camera_living_room",
+    "action": "move",
+    "target": "front_door"
+  },
+  "reason": "用户要求摄像头转向门口"
+}</code></pre>
+          </div>
+          <div class="card">
+            <span class="tag tag-orange">后端执行</span>
+            <pre><code>tool = self.tools.get(tool_name)
+result, event = tool.run(arguments, step)
+
+tool_events.append(event)
+
+if tool_name == "iot_control":
+    iot_state = extract_iot_state(result)
+elif tool_name == "video_search":
+    video_results = extract_video_results(result)</code></pre>
+          </div>
+        </div>
+
+        <div class="callout green">
+          <strong>为什么要有 ToolEvent：</strong>
+          它是工具执行的“收据”，记录 step、tool_name、输入、输出、状态和耗时。调试 Agent 时，它比最终回答更重要。
+        </div>
+
+        <details>
+          <summary>如果工具失败，会发生什么？</summary>
+          <div>
+            <p>
+              <code>ToolRegistry</code> 会捕获异常，返回 <code>status="failed"</code> 的 <code>ToolEvent</code>。
+              AgentLoop 仍会把失败观察写回模型，让模型给用户一个可读解释。也就是说，工具失败不一定直接导致整个请求崩掉。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>为什么不让模型直接返回“已控制摄像头”？</summary>
+          <div>
+            <p>
+              因为模型没有真实执行能力。它只能提出工具调用请求。
+              只有后端工具执行成功后，下一轮模型才能基于 observation 告诉用户“已完成”。
+              这是避免模型幻觉控制结果的关键设计。
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section class="section" id="mental">
+        <h2>8. 一个心智模型</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <span class="tag tag-purple">模型</span>
+            <h3>调度员</h3>
+            <p>读任务、决定下一步，但不亲自开门、不亲自查库。</p>
+          </div>
+          <div class="card">
+            <span class="tag tag-orange">工具</span>
+            <h3>执行部门</h3>
+            <p>摄像头控制、VikingDB 检索、联网搜索都是真正执行动作的部门。</p>
+          </div>
+          <div class="card">
+            <span class="tag tag-green">Observation</span>
+            <h3>回执单</h3>
+            <p>告诉模型刚才执行成功还是失败，返回了什么数据，耗时多少。</p>
+          </div>
+        </div>
+        <p>
+          所以每次工具调用都像这样：
+          <code class="mini-code">调度员下单 → 执行部门处理 → 回执单回来 → 调度员再对用户汇报</code>。
+        </p>
+      </section>
+
+      <section class="section" id="checkpoint">
+        <h2>9. 检查点</h2>
+        <p>看完后，你可以用下面几个问题确认自己是否真的理解了。</p>
+        <div class="quiz">
+          <label><input type="checkbox" data-save="c1"> <span>我能说出模型第一次输入里包含哪几类消息。</span></label>
+          <label><input type="checkbox" data-save="c2"> <span>我能区分 <code>final_answer</code> 和 <code>tool_call</code>。</span></label>
+          <label><input type="checkbox" data-save="c3"> <span>我知道工具不是模型执行的，而是 <code>ToolRegistry</code> 执行的。</span></label>
+          <label><input type="checkbox" data-save="c4"> <span>我能解释为什么工具结果要以 <code>role="tool"</code> 回填给模型。</span></label>
+          <label><input type="checkbox" data-save="c5"> <span>我知道视频搜索结果来自 <code>video_search</code> 工具，而不是模型编出来的。</span></label>
+        </div>
+
+        <details>
+          <summary>参考答案：一句话总结整个 Agent 流程</summary>
+          <div>
+            <p>
+              AgentLoop 先把 system prompt、工具说明、历史和用户问题喂给模型；模型输出 JSON 决策；
+              如果是 <code>final_answer</code> 就结束；如果是 <code>tool_call</code> 就由 ToolRegistry 执行工具；
+              工具返回 result 和 ToolEvent；Loop 把工具调用和工具观察追加回 messages；
+              再次调用模型，让模型基于真实观察生成最终回答。
+            </p>
+          </div>
+        </details>
+
+        <h3>建议下一步读代码</h3>
+        <pre><code># 只看 Agent Loop 主流程
+sed -n '35,99p' backend/app/agent/loop.py
+
+# 只看工具观察如何回填
+sed -n '132,157p' backend/app/agent/loop.py
+
+# 跑最小 Agent Loop 单测
+cd backend
+PYTHONPATH=. python3 -m pytest tests/test_agent_loop.py -v</code></pre>
+      </section>
+
+      <div class="footer">
+        本页聚焦 Agent 内核：模型输入、模型 JSON 输出、工具执行、观察回填、最终回答。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll("[data-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.tab;
+        document.querySelectorAll("[data-tab]").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(`panel-${target}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll("[data-save]").forEach((checkbox) => {
+      const key = `agent-loop-io-trace-${checkbox.dataset.save}`;
+      checkbox.checked = localStorage.getItem(key) === "true";
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(key, checkbox.checked ? "true" : "false");
+      });
+    });
+  </script>
+</body>
+</html>

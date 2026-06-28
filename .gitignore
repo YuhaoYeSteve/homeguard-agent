@@ -1,0 +1,67 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa*
+credentials*
+secrets*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local duplicate files from cloud sync or manual copies
+frontend/package-lock 2.json
+frontend/src/App 2.tsx
+frontend/src/styles 2.css
+
+# Local data and logs
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+logs/
+tmp/
+temp/
+
+# macOS / IDE / local agent artifacts
+.DS_Store
+.idea/
+.vscode/
+.trae/
+.superpowers/
+
+# Generated reports or caches
+.cache/
+coverage/

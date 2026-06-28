@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HomeGuard Agent 架构说明</title>
+    <style>
+      :root {
+        --ink: #18211f;
+        --muted: #5d6965;
+        --paper: #f7f9f5;
+        --panel: #ffffff;
+        --line: #d8dfd7;
+        --line-strong: #aab8ad;
+        --accent: #0f766e;
+        --accent-dark: #0a4f4a;
+        --accent-soft: #d9f3ee;
+        --amber: #a75c00;
+        --amber-soft: #fff0d6;
+        --blue: #2f5f9c;
+        --blue-soft: #e4edff;
+        --rose: #a83e54;
+        --rose-soft: #ffe6eb;
+        --shadow: 0 18px 50px rgba(28, 44, 38, 0.12);
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 34rem),
+          linear-gradient(315deg, rgba(47, 95, 156, 0.08), transparent 30rem),
+          var(--paper);
+        color: var(--ink);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "PingFang SC",
+          "Microsoft YaHei",
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 0 28px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 760;
+        letter-spacing: 0.02em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        background: var(--panel);
+        box-shadow: 0 8px 24px rgba(24, 33, 31, 0.08);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+        color: var(--accent-dark);
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .nav a {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--muted);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        gap: 26px;
+        align-items: stretch;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .section,
+      .mini-card,
+      .tool-card,
+      .state-card,
+      .scenario-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        padding: 44px;
+        min-height: 460px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--accent-dark);
+        font-size: 12px;
+        font-weight: 760;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 880px;
+        margin-bottom: 22px;
+        font-size: clamp(44px, 8vw, 90px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        margin-bottom: 10px;
+        font-size: 20px;
+        line-height: 1.18;
+      }
+
+      .lead {
+        max-width: 720px;
+        margin-bottom: 26px;
+        color: var(--muted);
+        font-size: 20px;
+      }
+
+      .summary-band {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .summary-pill {
+        min-height: 86px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        background: #fbfcf9;
+      }
+
+      .summary-pill strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--ink);
+        font-size: 15px;
+      }
+
+      .summary-pill span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .hero-card {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        overflow: hidden;
+      }
+
+      .screen {
+        border: 1px solid #17231f;
+        border-radius: 14px;
+        background: #17231f;
+        color: #eef8f4;
+        overflow: hidden;
+      }
+
+      .screen-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        color: #bfd5ce;
+        font-size: 12px;
+      }
+
+      .window-dots {
+        display: flex;
+        gap: 5px;
+      }
+
+      .window-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #d9f3ee;
+        opacity: 0.75;
+      }
+
+      .screen-body {
+        padding: 18px;
+      }
+
+      .chat-line {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+
+      .avatar {
+        display: grid;
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 50%;
+        background: rgba(217, 243, 238, 0.12);
+        color: #bff1e7;
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .bubble {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 14px;
+      }
+
+      .bubble.user {
+        background: rgba(217, 243, 238, 0.14);
+      }
+
+      .sse-strip {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .sse-event {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 10px;
+        padding: 9px 10px;
+        color: #d9eee9;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .sse-event b {
+        color: #bff1e7;
+        font-weight: 700;
+      }
+
+      .section {
+        margin-top: 28px;
+        padding: 34px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      .section-head p {
+        max-width: 680px;
+        color: var(--muted);
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 11px;
+        background: #fbfcf9;
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .architecture-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .arch-node {
+        position: relative;
+        min-height: 152px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        background: #fbfcf9;
+      }
+
+      .arch-node::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -13px;
+        width: 13px;
+        height: 1px;
+        background: var(--line-strong);
+      }
+
+      .arch-node:last-child::after {
+        display: none;
+      }
+
+      .arch-node small {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--accent-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .arch-node p,
+      .flow-step p,
+      .tool-card p,
+      .state-card p,
+      .scenario-card p,
+      .mini-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .flow-step {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        background: #fbfcf9;
+      }
+
+      .flow-step strong {
+        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      .flow-step h3 {
+        font-size: 18px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 18px;
+      }
+
+      .decision-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+        background: #fbfcf9;
+      }
+
+      .code-block {
+        display: block;
+        overflow: auto;
+        margin: 14px 0 0;
+        border: 1px solid #20332f;
+        border-radius: 12px;
+        padding: 16px;
+        background: #17231f;
+        color: #dcefe9;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre;
+      }
+
+      .tool-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .tool-card {
+        padding: 20px;
+      }
+
+      .tool-card .tool-label,
+      .state-label {
+        display: inline-flex;
+        margin-bottom: 16px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .tool-card.search .tool-label,
+      .state-label.blue {
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+
+      .tool-card.video .tool-label,
+      .state-label.amber {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+
+      .tool-card.iot .tool-label,
+      .state-label.green {
+        background: var(--accent-soft);
+        color: var(--accent-dark);
+      }
+
+      .tool-meta {
+        display: grid;
+        gap: 9px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .tool-meta div {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tool-meta b {
+        color: var(--ink);
+      }
+
+      .state-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .state-card {
+        padding: 20px;
+      }
+
+      .state-list {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .state-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .dot {
+        flex: 0 0 9px;
+        width: 9px;
+        height: 9px;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      .dot.amber {
+        background: var(--amber);
+      }
+
+      .dot.blue {
+        background: var(--blue);
+      }
+
+      .dot.rose {
+        background: var(--rose);
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(90px, 1fr));
+        gap: 9px;
+      }
+
+      .timeline-item {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: #fbfcf9;
+      }
+
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--accent-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .timeline-item span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .scenario-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .scenario-card {
+        padding: 20px;
+      }
+
+      .scenario-card b {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .scenario-path {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 16px;
+      }
+
+      .scenario-path span {
+        border-radius: 999px;
+        padding: 5px 9px;
+        background: #f0f4ef;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .observability {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+      }
+
+      .mini-card {
+        padding: 20px;
+        box-shadow: none;
+      }
+
+      .mini-card strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .notice {
+        border: 1px solid #efc7d0;
+        border-radius: 14px;
+        padding: 18px;
+        background: var(--rose-soft);
+        color: #743044;
+      }
+
+      .footer {
+        padding: 28px 0 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 1080px) {
+        .hero,
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .architecture-grid,
+        .flow,
+        .tool-grid,
+        .state-grid,
+        .scenario-grid,
+        .observability {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .timeline {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .arch-node::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .page {
+          padding: 18px;
+        }
+
+        .topbar,
+        .section-head {
+          display: block;
+        }
+
+        .nav {
+          justify-content: flex-start;
+          margin-top: 14px;
+        }
+
+        .hero-copy,
+        .section {
+          padding: 24px;
+        }
+
+        .summary-band,
+        .architecture-grid,
+        .flow,
+        .tool-grid,
+        .state-grid,
+        .scenario-grid,
+        .observability,
+        .timeline {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">HG</span>
+          <span>HomeGuard Agent Architecture</span>
+        </div>
+        <nav class="nav" aria-label="页面导航">
+          <a href="#flow">流程</a>
+          <a href="#tools">工具</a>
+          <a href="#states">状态</a>
+          <a href="#examples">例子</a>
+          <a href="#limits">边界</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <div>
+              <p class="eyebrow">给非技术同学看的版本</p>
+              <h1>这个 Agent 到底怎么工作？</h1>
+              <p class="lead">
+                一句话：它不是固定关键词机器人，而是一个“模型先判断、后端再执行白名单工具、前端实时展示过程”的流式 Agent。
+              </p>
+            </div>
+            <div class="summary-band">
+              <div class="summary-pill">
+                <strong>模型负责想</strong>
+                <span>判断要不要调用工具，并生成严格 JSON 决策。</span>
+              </div>
+              <div class="summary-pill">
+                <strong>后端负责控</strong>
+                <span>只执行注册过的工具，校验参数，记录结果。</span>
+              </div>
+              <div class="summary-pill">
+                <strong>前端负责看</strong>
+                <span>边回答边展示状态、工具轨迹和摄像头状态。</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hero-card" aria-label="流式事件示意">
+            <p class="eyebrow">Streaming Console</p>
+            <div class="screen">
+              <div class="screen-header">
+                <div class="window-dots"><span></span><span></span><span></span></div>
+                <span>POST /api/chat/stream</span>
+              </div>
+              <div class="screen-body">
+                <div class="chat-line">
+                  <span class="avatar">U</span>
+                  <div class="bubble user">把客厅摄像头转向门口</div>
+                </div>
+                <div class="chat-line">
+                  <span class="avatar">A</span>
+                  <div class="bubble">正在分析意图并选择下一步动作...</div>
+                </div>
+                <div class="sse-strip">
+                  <div class="sse-event"><b>status</b><span>模型决策层</span></div>
+                  <div class="sse-event"><b>tool_call</b><span>iot_control</span></div>
+                  <div class="sse-event"><b>tool_result</b><span>simulated_success</span></div>
+                  <div class="sse-event"><b>answer_delta</b><span>已模拟转向门口</span></div>
+                  <div class="sse-event"><b>final</b><span>完整结果返回前端</span></div>
+                </div>
+              </div>
+            </div>
+            <p>
+              页面看到的“思考中、调用工具、工具结果、最终回答”，都来自后端一条条推送的 SSE 事件。
+            </p>
+          </aside>
+        </section>
+
+        <section class="section" id="architecture">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Architecture</p>
+              <h2>整体采用什么架构？</h2>
+              <p>
+                这是一个模型主导的工具型 Agent。模型不直接改摄像头状态，也不直接操作前端；它只能输出一个受约束的 JSON 决策。后端拿到决策后，再按白名单执行工具。
+              </p>
+            </div>
+            <span class="tag">模型决策 + 后端工具执行 + SSE 实时返回</span>
+          </div>
+
+          <div class="architecture-grid">
+            <article class="arch-node">
+              <small>01 Frontend</small>
+              <h3>用户界面</h3>
+              <p>React 页面负责聊天、会话列表、摄像头状态面板和处理过程展示。</p>
+            </article>
+            <article class="arch-node">
+              <small>02 API</small>
+              <h3>流式接口</h3>
+              <p>FastAPI 只保留 /api/chat/stream，用 SSE 把过程一条条推给前端。</p>
+            </article>
+            <article class="arch-node">
+              <small>03 AgentLoop</small>
+              <h3>编排大脑</h3>
+              <p>最多跑 3 个决策步：问模型、执行工具、回填结果、生成答案。</p>
+            </article>
+            <article class="arch-node">
+              <small>04 Model</small>
+              <h3>Ark SDK</h3>
+              <p>火山方舟 SDK 负责模型调用：先出 JSON 决策，再流式出最终文字。</p>
+            </article>
+            <article class="arch-node">
+              <small>05 Tools</small>
+              <h3>工具白名单</h3>
+              <p>只有 web_search、video_search、iot_control 三种外部能力可执行。</p>
+            </article>
+            <article class="arch-node">
+              <small>06 Memory</small>
+              <h3>会话上下文</h3>
+              <p>后端保留进程内消息，前端也把会话存在 localStorage 里。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="flow">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Runtime Flow</p>
+              <h2>用户说一句话后，会发生什么？</h2>
+              <p>
+                你可以把它理解成一个流水线：用户说话，模型先选路，后端执行必要动作，结果再交给模型组织成自然语言。
+              </p>
+            </div>
+            <span class="tag">最多 3 轮工具决策</span>
+          </div>
+
+          <div class="flow">
+            <article class="flow-step">
+              <strong>1</strong>
+              <h3>接收用户目标</h3>
+              <p>前端把用户消息、conversation_id 和客户端历史发到流式接口。</p>
+            </article>
+            <article class="flow-step">
+              <strong>2</strong>
+              <h3>打包上下文</h3>
+              <p>后端把系统提示词、工具说明、历史消息和当前消息放在一起。</p>
+            </article>
+            <article class="flow-step">
+              <strong>3</strong>
+              <h3>模型做 JSON 决策</h3>
+              <p>模型只能选择 final_answer 或 tool_call，不能自由发挥执行动作。</p>
+            </article>
+            <article class="flow-step">
+              <strong>4</strong>
+              <h3>如果要工具</h3>
+              <p>后端通过 ToolRegistry 找工具，执行后得到 tool_result 和业务状态。</p>
+            </article>
+            <article class="flow-step">
+              <strong>5</strong>
+              <h3>Observation 回填</h3>
+              <p>工具结果会变成 tool 消息，重新放回模型上下文，让模型基于事实继续。</p>
+            </article>
+            <article class="flow-step">
+              <strong>6</strong>
+              <h3>生成最终回复</h3>
+              <p>模型根据草稿、工具结果和上下文，流式输出用户能读懂的中文答案。</p>
+            </article>
+            <article class="flow-step">
+              <strong>7</strong>
+              <h3>前端实时展示</h3>
+              <p>answer_delta 拼成回答，tool_result 更新 IoT 面板和视频结果。</p>
+            </article>
+            <article class="flow-step">
+              <strong>8</strong>
+              <h3>会话持久化</h3>
+              <p>收到 final 后，后端保存用户和助手消息，前端保存当前会话状态。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="decision">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Decision Protocol</p>
+              <h2>为什么它不像普通聊天机器人？</h2>
+              <p>
+                普通聊天机器人直接生成一段话。这个 Agent 会先生成“可被程序理解的动作协议”，后端校验后才执行，所以更可控、更容易展示过程。
+              </p>
+            </div>
+            <span class="tag">自由文本不驱动业务动作</span>
+          </div>
+
+          <div class="split">
+            <article class="decision-card">
+              <h3>路径 A：不需要工具，直接回答</h3>
+              <p>比如用户问“你能做什么？”或闲聊，模型输出 final_answer。</p>
+              <pre class="code-block">{
+  "type": "final_answer",
+  "answer": "我可以帮你查视频、联网搜索，也可以模拟控制摄像头。",
+  "iot_action": "none"
+}</pre>
+            </article>
+            <article class="decision-card">
+              <h3>路径 B：需要工具，先调用工具</h3>
+              <p>比如用户要“把摄像头转向门口”，模型输出 tool_call。</p>
+              <pre class="code-block">{
+  "type": "tool_call",
+  "tool_name": "iot_control",
+  "arguments": {
+    "device_id": "camera_living_room",
+    "action": "move",
+    "target": "front_door"
+  },
+  "reason": "用户要求摄像头转向门口"
+}</pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="tools">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Tools</p>
+              <h2>它会执行哪些工具？</h2>
+              <p>
+                当前 ToolRegistry 注册了三个工具。模型可以请求它们，但真正执行权在后端；未知工具会被拒绝并记录失败事件。
+              </p>
+            </div>
+            <span class="tag">工具是白名单，不是随便调</span>
+          </div>
+
+          <div class="tool-grid">
+            <article class="tool-card search">
+              <span class="tool-label">web_search</span>
+              <h3>联网搜索</h3>
+              <p>用于天气、新闻、政策、实时信息。天气优先走 wttr，普通搜索走 DuckDuckGo，必要时回退 Bing。</p>
+              <div class="tool-meta">
+                <div><b>输入</b><span>query, top_k</span></div>
+                <div><b>输出</b><span>标题、摘要、URL</span></div>
+                <div><b>状态</b><span>success / failed / skipped</span></div>
+              </div>
+            </article>
+
+            <article class="tool-card video">
+              <span class="tool-label">video_search</span>
+              <h3>视频检索</h3>
+              <p>用于查监控片段。它调用 VikingDB 多模态检索，返回视频 ID、文本描述和分数。</p>
+              <div class="tool-meta">
+                <div><b>输入</b><span>query, limit</span></div>
+                <div><b>输出</b><span>f_id, f_text, score</span></div>
+                <div><b>依赖</b><span>VikingDB AK/SK</span></div>
+              </div>
+            </article>
+
+            <article class="tool-card iot">
+              <span class="tool-label">iot_control</span>
+              <h3>IoT 模拟控制</h3>
+              <p>用于移动摄像头、打开隐私遮蔽、恢复摄像头画面。注意：这里只是模拟，不接真实设备。</p>
+              <div class="tool-meta">
+                <div><b>输入</b><span>device_id, action, target</span></div>
+                <div><b>动作</b><span>move / privacy_mask / none</span></div>
+                <div><b>输出</b><span>IotState + ToolEvent</span></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="states">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">States</p>
+              <h2>它大概有哪些状态？</h2>
+              <p>
+                这个项目里“状态”分三类：Agent 流程状态、IoT 业务状态、工具执行状态。前端能看到的处理过程主要来自这些状态。
+              </p>
+            </div>
+            <span class="tag">状态让 Agent 可观测</span>
+          </div>
+
+          <div class="timeline" aria-label="Agent 八个架构阶段">
+            <div class="timeline-item"><strong>01</strong><span>用户意图</span></div>
+            <div class="timeline-item"><strong>02</strong><span>上下文打包</span></div>
+            <div class="timeline-item"><strong>03</strong><span>模型决策层</span></div>
+            <div class="timeline-item"><strong>04</strong><span>动作协议</span></div>
+            <div class="timeline-item"><strong>05</strong><span>工具能力层</span></div>
+            <div class="timeline-item"><strong>06</strong><span>Observation 回填</span></div>
+            <div class="timeline-item"><strong>07</strong><span>最终回复</span></div>
+            <div class="timeline-item"><strong>08</strong><span>前端可观测</span></div>
+          </div>
+
+          <div class="state-grid" style="margin-top: 14px">
+            <article class="state-card">
+              <span class="state-label green">IotState</span>
+              <h3>摄像头业务状态</h3>
+              <ul class="state-list">
+                <li><span class="dot"></span><span><b>iot_action</b>：none、move、privacy_mask</span></li>
+                <li><span class="dot"></span><span><b>status</b>：idle、simulated_success、validation_failed、tool_error</span></li>
+                <li><span class="dot"></span><span><b>target</b>：front_door、left、camera_on 等目标</span></li>
+              </ul>
+            </article>
+
+            <article class="state-card">
+              <span class="state-label amber">ToolEvent</span>
+              <h3>工具执行状态</h3>
+              <ul class="state-list">
+                <li><span class="dot amber"></span><span><b>success</b>：工具执行成功</span></li>
+                <li><span class="dot amber"></span><span><b>failed</b>：参数错误、外部服务失败或未知工具</span></li>
+                <li><span class="dot amber"></span><span><b>skipped</b>：工具被配置关闭，比如 web_search disabled</span></li>
+              </ul>
+            </article>
+
+            <article class="state-card">
+              <span class="state-label blue">SSE Event</span>
+              <h3>前端接收的流事件</h3>
+              <ul class="state-list">
+                <li><span class="dot blue"></span><span>session、status、tool_call、tool_result</span></li>
+                <li><span class="dot blue"></span><span>reasoning_delta、answer_delta、model_meta</span></li>
+                <li><span class="dot blue"></span><span>final、error、done</span></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="examples">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Examples</p>
+              <h2>几种典型用户请求会怎么走？</h2>
+              <p>
+                下面这些不是写死的关键词规则，而是当前系统提示词希望模型学会的路由方式。
+              </p>
+            </div>
+            <span class="tag">同一个入口，不同工具路径</span>
+          </div>
+
+          <div class="scenario-grid">
+            <article class="scenario-card">
+              <b>“你好，介绍一下你自己”</b>
+              <p>普通问答，不需要外部信息，也不需要动摄像头。</p>
+              <div class="scenario-path">
+                <span>final_answer</span><span>无工具</span><span>直接回复</span>
+              </div>
+            </article>
+            <article class="scenario-card">
+              <b>“现在北京天气怎么样”</b>
+              <p>需要实时信息，所以模型应该请求联网搜索。</p>
+              <div class="scenario-path">
+                <span>tool_call</span><span>web_search</span><span>天气结果</span>
+              </div>
+            </article>
+            <article class="scenario-card">
+              <b>“查一下昨晚门口有没有人经过”</b>
+              <p>这是监控视频内容查询，应该走 VikingDB 视频检索。</p>
+              <div class="scenario-path">
+                <span>tool_call</span><span>video_search</span><span>视频片段</span>
+              </div>
+            </article>
+            <article class="scenario-card">
+              <b>“把摄像头转到阳台方向”</b>
+              <p>这是 IoT 控制意图，后端只会模拟状态变化。</p>
+              <div class="scenario-path">
+                <span>tool_call</span><span>iot_control</span><span>move</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="visible">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">What The User Sees</p>
+              <h2>前端到底展示了什么？</h2>
+              <p>
+                前端不是只显示最后一句话。它会把后端流式事件拆开，分别更新消息、处理过程、IoT 面板、工具轨迹和视频结果。
+              </p>
+            </div>
+          </div>
+
+          <div class="observability">
+            <article class="mini-card">
+              <strong>聊天内容</strong>
+              <p>answer_delta 会不断追加到助手消息里，用户看到的是“边生成边显示”。</p>
+            </article>
+            <article class="mini-card">
+              <strong>处理过程</strong>
+              <p>status、tool_call、tool_result、model_meta 会进入每条助手消息的 processEvents。</p>
+            </article>
+            <article class="mini-card">
+              <strong>摄像头面板</strong>
+              <p>tool_result 和 final 里的 iot_state 会驱动右侧模拟摄像头状态。</p>
+            </article>
+            <article class="mini-card">
+              <strong>视频结果</strong>
+              <p>video_results 来自 video_search，前端可以用它展示命中的片段描述。</p>
+            </article>
+            <article class="mini-card">
+              <strong>错误提示</strong>
+              <p>error 事件会显示到当前助手消息上，不会假装已经成功。</p>
+            </article>
+            <article class="mini-card">
+              <strong>会话列表</strong>
+              <p>前端用 localStorage 保存多个会话，后端收到 final 后保存本轮对话。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="limits">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Safety & Limits</p>
+              <h2>当前边界和保护机制</h2>
+              <p>
+                这个 Demo 已经有一些基本保护，但它仍然是演示原型，不是完整生产系统。
+              </p>
+            </div>
+          </div>
+
+          <div class="split">
+            <article class="decision-card">
+              <h3>已有保护</h3>
+              <ul class="state-list">
+                <li><span class="dot"></span><span>模型必须输出 JSON 决策，不能用自然语言直接驱动业务动作。</span></li>
+                <li><span class="dot"></span><span>工具由 ToolRegistry 白名单控制，未知工具会失败。</span></li>
+                <li><span class="dot"></span><span>IoT 参数通过 Pydantic 校验，非法 action 会 validation_failed。</span></li>
+                <li><span class="dot"></span><span>AgentLoop 最多 3 步，避免无限循环调用工具。</span></li>
+                <li><span class="dot"></span><span>最终回答提示词要求：工具失败要说明原因，视频结果不能编造。</span></li>
+              </ul>
+            </article>
+            <article class="decision-card">
+              <h3>当前限制</h3>
+              <ul class="state-list">
+                <li><span class="dot rose"></span><span>IoT 只是模拟，不会真的控制摄像头或设备。</span></li>
+                <li><span class="dot rose"></span><span>后端会话是进程内存储，重启会丢失。</span></li>
+                <li><span class="dot rose"></span><span>VikingDB 视频搜索需要提前配置 AK/SK、collection 和 index。</span></li>
+                <li><span class="dot rose"></span><span>联网搜索依赖外部网络，可能超时或失败。</span></li>
+                <li><span class="dot rose"></span><span>生产级权限、审计、真实设备绑定还没有做。</span></li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="notice" style="margin-top: 16px">
+            <strong>最重要的一点：</strong>
+            这个 Agent 的核心价值不是“能聊天”，而是“能把模型决策、工具执行、状态变化、最终回复全部摊开给人看”。这让它更适合做安防 App 里的可解释智能助手 Demo。
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        基于当前代码读取生成：FastAPI 流式接口、AgentLoop、Ark SDK、ToolRegistry、React SSE 客户端。
+      </footer>
+    </div>
+  </body>
+</html>

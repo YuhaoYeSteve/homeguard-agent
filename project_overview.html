@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>video_search_agent 项目入门导览</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --paper: #ffffff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d9e1ef;
+      --blue: #2f6fed;
+      --green: #198754;
+      --orange: #c76a13;
+      --red: #d92d20;
+      --purple: #7a5af8;
+      --shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(47, 111, 237, 0.12), transparent 34rem),
+        radial-gradient(circle at top right, rgba(122, 90, 248, 0.12), transparent 30rem),
+        var(--bg);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--blue);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 38px 0 64px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(47, 111, 237, 0.1);
+      color: var(--blue);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.03;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 62ch;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .status {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcff;
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .status span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .diagram-card {
+      padding: 24px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .diagram-wrap {
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #f8faff);
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .node {
+      cursor: pointer;
+      transition: transform 0.18s ease, filter 0.18s ease;
+      transform-origin: center;
+    }
+
+    .node:hover {
+      filter: drop-shadow(0 10px 16px rgba(47, 111, 237, 0.2));
+      transform: translateY(-2px);
+    }
+
+    .node rect {
+      stroke-width: 1.6;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .arrow {
+      fill: none;
+      stroke: #8da2c8;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 8 7;
+      animation: flow 1.8s linear infinite;
+      marker-end: url(#arrowhead);
+    }
+
+    @keyframes flow {
+      to {
+        stroke-dashoffset: -30;
+      }
+    }
+
+    .detail {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #f9fbff;
+      min-height: 92px;
+    }
+
+    .detail-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .detail-body {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .section {
+      padding: 24px;
+    }
+
+    .module {
+      border-left: 5px solid var(--blue);
+    }
+
+    .module.green {
+      border-left-color: var(--green);
+    }
+
+    .module.orange {
+      border-left-color: var(--orange);
+    }
+
+    .module.red {
+      border-left-color: var(--red);
+    }
+
+    .module.purple {
+      border-left-color: var(--purple);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .code {
+      margin: 12px 0 0;
+      border: 1px solid #d0d7e5;
+      border-radius: 16px;
+      background: #101828;
+      color: #ecf3ff;
+      padding: 14px;
+      overflow: auto;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: #fff;
+      position: relative;
+    }
+
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--blue);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .checklist {
+      padding-left: 20px;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .warning {
+      border-color: rgba(217, 45, 32, 0.35);
+      background: rgba(217, 45, 32, 0.06);
+    }
+
+    .ok {
+      border-color: rgba(25, 135, 84, 0.35);
+      background: rgba(25, 135, 84, 0.06);
+    }
+
+    footer {
+      color: var(--muted);
+      margin-top: 28px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .grid,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="card hero-copy">
+        <span class="eyebrow">第一阶段：项目入门</span>
+        <h1>video_search_agent 学习导览</h1>
+        <p class="lead">
+          这不是一个完整 Python 包，而是一个很小的入口目录。当前磁盘上能确认的内容只有：
+          空的 <strong>demo.py</strong>、一行 <strong>bash.sh</strong>，以及一个已经失效或不存在的外部脚本路径。
+        </p>
+        <div class="status-grid">
+          <div class="status ok">
+            <strong>✅ Python 环境</strong>
+            <span>检测到 Python 3.9.6，可作为基础运行环境。</span>
+          </div>
+          <div class="status warning">
+            <strong>❌ demo.py</strong>
+            <span>磁盘文件为 0 bytes；如果 IDE 中有代码，请先保存。</span>
+          </div>
+          <div class="status ok">
+            <strong>✅ bash.sh</strong>
+            <span>包含一条评测命令，但没有换行和 shebang。</span>
+          </div>
+          <div class="status warning">
+            <strong>❌ 核心脚本</strong>
+            <span>/Users/bytedance/Yingshi_search 目录当前不存在。</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card diagram-card">
+        <div class="tabs" aria-label="diagram tabs">
+          <button class="tab active" data-view="architecture">架构图</button>
+          <button class="tab" data-view="dependency">模块依赖图</button>
+          <button class="tab" data-view="flow">数据流程图</button>
+        </div>
+        <div class="diagram-wrap">
+          <svg id="diagram" viewBox="0 0 640 420" role="img" aria-label="project diagram"></svg>
+        </div>
+        <div class="detail" id="detail">
+          <div class="detail-title">点击图中的模块</div>
+          <p class="detail-body">你可以点击任意节点，查看它在当前项目里的作用和学习重点。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card section module">
+        <h2>当前项目结构</h2>
+        <p class="meta">来自磁盘扫描结果</p>
+        <pre class="code">video_search_agent/
+├── demo.py          # 当前为空文件
+├── bash.sh          # 运行评测脚本的命令
+└── project_overview.html</pre>
+      </article>
+
+      <article class="card section module green">
+        <h2>bash.sh 做了什么</h2>
+        <p>
+          它调用一个外部 Python 脚本，并传入网格搜索、评测指标、阈值范围、beta 范围、日志级别和可视化参数。
+        </p>
+        <pre class="code">python3 /Users/bytedance/Yingshi_search/eval_yingshi_retrieval_rerank.py \
+  --grid-search \
+  --grid-objective map@10 \
+  --grid-threshold-min 0.0 \
+  --grid-threshold-max 0.2 \
+  --grid-threshold-step 0.01 \
+  --grid-step-beta-min 0.1 \
+  --grid-step-beta-max 0.9 \
+  --grid-step-beta-step 0.05 \
+  --log-level INFO \
+  --viz-top-n 10</pre>
+      </article>
+
+      <article class="card section module orange">
+        <h2>现在的主要阻塞</h2>
+        <p>
+          当前目录还不足以真正学习“agent 项目”：核心逻辑不在这里，且 IDE 里显示的 <code>demo.py</code>
+          内容尚未出现在磁盘文件中。
+        </p>
+        <ul class="checklist">
+          <li>确认 IDE 中的 <code>demo.py</code> 是否已保存。</li>
+          <li>确认 <code>/Users/bytedance/Yingshi_search</code> 是否是旧路径。</li>
+          <li>如果有完整项目目录，请把 Trae 工作目录切到那里。</li>
+        </ul>
+      </article>
+
+      <article class="card section module purple wide">
+        <h2>三阶段学习路线</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>先跑通</h3>
+            <p class="meta">目标：知道入口命令是否能执行。</p>
+            <pre class="code">python3 --version
+bash -n bash.sh</pre>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>后理解</h3>
+            <p class="meta">目标：逐行解释参数。</p>
+            <ul class="checklist">
+              <li><code>--grid-search</code>：开启参数搜索。</li>
+              <li><code>map@10</code>：用前 10 条结果衡量排序质量。</li>
+              <li><code>threshold</code>：控制过滤阈值。</li>
+              <li><code>beta</code>：控制重排权重。</li>
+            </ul>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>再修改</h3>
+            <p class="meta">目标：改变一个参数，观察输出变化。</p>
+            <pre class="code">--grid-threshold-max 0.3
+--viz-top-n 20</pre>
+          </div>
+          <div class="step">
+            <span class="step-num">4</span>
+            <h3>最后定制</h3>
+            <p class="meta">目标：接入自己的视频数据、检索逻辑或大模型接口。</p>
+            <ul class="checklist">
+              <li>替换数据读取。</li>
+              <li>替换召回模型。</li>
+              <li>替换 rerank 逻辑。</li>
+              <li>重做评测指标。</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="card section module red wide">
+        <h2>第一检查点</h2>
+        <p>
+          你现在要先解决一个基础事实问题：当前磁盘上的 <code>demo.py</code> 是空的。
+          如果你能在 IDE 中看到 <code>SK = ""</code>，请先保存文件，然后重新扫描项目。
+        </p>
+        <pre class="code"># 保存 demo.py 后，用下面命令确认：
+wc -l demo.py
+nl -ba demo.py | sed -n '1,120p'</pre>
+      </article>
+    </section>
+
+    <footer>
+      生成文件：project_overview.html。建议用浏览器打开它，作为本项目第一阶段学习面板。
+    </footer>
+  </main>
+
+  <script>
+    const diagrams = {
+      architecture: {
+        title: "项目架构图",
+        nodes: [
+          ["workspace", "当前目录", 58, 42, 150, 66, "#eaf1ff", "#2f6fed"],
+          ["demo", "demo.py\\n空文件", 58, 178, 150, 66, "#fff1f0", "#d92d20"],
+          ["bash", "bash.sh\\n命令入口", 260, 42, 150, 66, "#ecfdf3", "#198754"],
+          ["external", "外部脚本\\n当前缺失", 462, 42, 150, 66, "#fff6e8", "#c76a13"],
+          ["params", "评测参数\\ngrid search", 260, 178, 150, 66, "#f2efff", "#7a5af8"],
+          ["outputs", "日志 / 指标\\n可视化结果", 462, 178, 150, 66, "#eef8ff", "#0b77bd"]
+        ],
+        arrows: [
+          ["workspace", "demo"],
+          ["workspace", "bash"],
+          ["bash", "external"],
+          ["bash", "params"],
+          ["external", "outputs"],
+          ["params", "outputs"]
+        ]
+      },
+      dependency: {
+        title: "模块依赖图",
+        nodes: [
+          ["shell", "Shell 命令", 58, 48, 160, 66, "#ecfdf3", "#198754"],
+          ["python", "Python 解释器", 260, 48, 160, 66, "#eaf1ff", "#2f6fed"],
+          ["script", "eval_yingshi...py", 462, 48, 160, 66, "#fff6e8", "#c76a13"],
+          ["data", "视频/查询数据", 58, 198, 160, 66, "#f2efff", "#7a5af8"],
+          ["retrieval", "召回 + 重排", 260, 198, 160, 66, "#eef8ff", "#0b77bd"],
+          ["metric", "MAP@10 指标", 462, 198, 160, 66, "#fff1f0", "#d92d20"]
+        ],
+        arrows: [
+          ["shell", "python"],
+          ["python", "script"],
+          ["script", "data"],
+          ["data", "retrieval"],
+          ["retrieval", "metric"],
+          ["script", "metric"]
+        ]
+      },
+      flow: {
+        title: "数据流程图",
+        nodes: [
+          ["query", "输入查询", 58, 42, 150, 66, "#eaf1ff", "#2f6fed"],
+          ["candidates", "候选视频", 260, 42, 150, 66, "#eef8ff", "#0b77bd"],
+          ["score", "打分/融合", 462, 42, 150, 66, "#f2efff", "#7a5af8"],
+          ["threshold", "阈值过滤", 58, 198, 150, 66, "#fff6e8", "#c76a13"],
+          ["rerank", "重排序", 260, 198, 150, 66, "#ecfdf3", "#198754"],
+          ["eval", "MAP@10 评测", 462, 198, 150, 66, "#fff1f0", "#d92d20"]
+        ],
+        arrows: [
+          ["query", "candidates"],
+          ["candidates", "score"],
+          ["score", "threshold"],
+          ["threshold", "rerank"],
+          ["rerank", "eval"]
+        ]
+      }
+    };
+
+    const descriptions = {
+      workspace: ["当前目录", "学习的起点，但它现在更像运行脚本收纳处，不是完整业务项目。"],
+      demo: ["demo.py", "磁盘文件为空；如果 IDE 里有 SK = \"\" 等内容，请先保存再继续分析。"],
+      bash: ["bash.sh", "当前唯一有效入口。它把参数传给外部 Python 评测脚本。"],
+      external: ["外部脚本", "bash.sh 依赖 /Users/bytedance/Yingshi_search/eval_yingshi_retrieval_rerank.py，但该路径当前不存在。"],
+      params: ["评测参数", "这些参数控制 grid search 范围、优化目标、日志级别和可视化数量。"],
+      outputs: ["输出结果", "预期包括日志、评测指标和 top N 可视化结果，但现在因为核心脚本缺失无法生成。"],
+      shell: ["Shell 命令", "负责把运行参数组织成一次命令调用。"],
+      python: ["Python 解释器", "负责执行评测脚本。当前环境检测到 Python 3.9.6。"],
+      script: ["评测脚本", "真正的核心逻辑应该在这里：读取数据、召回、重排、计算指标。"],
+      data: ["视频/查询数据", "评测通常需要 query、候选视频、标注或相关性标签。"],
+      retrieval: ["召回 + 重排", "视频搜索系统的核心：先找候选，再按相关性重新排序。"],
+      metric: ["MAP@10 指标", "衡量前 10 条搜索结果排序质量的指标。"],
+      query: ["输入查询", "用户或测试集里的搜索文本。"],
+      candidates: ["候选视频", "系统初步召回的一批可能相关视频。"],
+      score: ["打分/融合", "把多个分数或信号合成最终排序依据。"],
+      threshold: ["阈值过滤", "过滤低置信度结果，bash.sh 中的 threshold 参数就在控制这一步。"],
+      rerank: ["重排序", "用 beta 等参数调节不同信号权重，重新排列候选视频。"],
+      eval: ["MAP@10 评测", "用标准答案评估排序结果是否靠前。"]
+    };
+
+    const svg = document.querySelector("#diagram");
+    const detail = document.querySelector("#detail");
+    const tabs = document.querySelectorAll(".tab");
+
+    function center(node) {
+      const [, , x, y, w, h] = node;
+      return [x + w / 2, y + h / 2];
+    }
+
+    function render(view) {
+      const data = diagrams[view];
+      const nodeMap = Object.fromEntries(data.nodes.map((node) => [node[0], node]));
+      const arrowSvg = data.arrows.map(([from, to]) => {
+        const [x1, y1] = center(nodeMap[from]);
+        const [x2, y2] = center(nodeMap[to]);
+        const startX = x1 < x2 ? x1 + 76 : x1;
+        const endX = x1 < x2 ? x2 - 76 : x2;
+        const midX = (startX + endX) / 2;
+        return `<path class="arrow" d="M ${startX} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${endX} ${y2}"></path>`;
+      }).join("");
+
+      const nodeSvg = data.nodes.map(([id, label, x, y, w, h, fill, stroke]) => {
+        const lines = label.split("\\n");
+        const text = lines.map((line, index) => {
+          const dy = lines.length === 1 ? 5 : (index === 0 ? -5 : 14);
+          return `<text x="${x + w / 2}" y="${y + h / 2 + dy}" text-anchor="middle" fill="${stroke}">${line}</text>`;
+        }).join("");
+        return `
+          <g class="node" data-node="${id}">
+            <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="17" fill="${fill}" stroke="${stroke}"></rect>
+            ${text}
+          </g>`;
+      }).join("");
+
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M 0 0 L 10 4 L 0 8 z" fill="#8da2c8"></path>
+          </marker>
+        </defs>
+        <text x="28" y="26" fill="#667085" font-size="15" font-weight="800">${data.title}</text>
+        ${arrowSvg}
+        ${nodeSvg}
+      `;
+
+      svg.querySelectorAll(".node").forEach((node) => {
+        node.addEventListener("click", () => {
+          const id = node.dataset.node;
+          const [title, body] = descriptions[id] || ["模块说明", "暂无说明。"];
+          detail.innerHTML = `<div class="detail-title">${title}</div><p class="detail-body">${body}</p>`;
+        });
+      });
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((item) => item.classList.remove("active"));
+        tab.classList.add("active");
+        render(tab.dataset.view);
+      });
+    });
+
+    render("architecture");
+  </script>
+</body>
+</html>
