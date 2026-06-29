@@ -769,35 +769,35 @@ s20_comprehensive/images/system-architecture.ja.svg</code></pre>
           <div class="evidence-row">
             <strong>当前 AgentLoop</strong>
             <span>
-              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/loop.py#L24-L81">backend/app/agent/loop.py:24-81</a>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/homeguard-agent/backend/app/agent/loop.py#L24-L81">backend/app/agent/loop.py:24-81</a>
               体现最多 3 步、JSON 类型判断、业务工具执行和结构化响应。
             </span>
           </div>
           <div class="evidence-row">
             <strong>当前工具注册</strong>
             <span>
-              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/tool_registry.py#L10-L45">backend/app/agent/tool_registry.py:10-45</a>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/homeguard-agent/backend/app/agent/tool_registry.py#L10-L45">backend/app/agent/tool_registry.py:10-45</a>
               固定注册 IoT、联网搜索、VikingDB 视频检索，并捕获工具异常。
             </span>
           </div>
           <div class="evidence-row">
             <strong>当前模型合约</strong>
             <span>
-              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/agent/prompts.py#L1-L24">backend/app/agent/prompts.py:1-24</a>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/homeguard-agent/backend/app/agent/prompts.py#L1-L24">backend/app/agent/prompts.py:1-24</a>
               明确要求模型只输出 JSON，并列出业务工具输入格式。
             </span>
           </div>
           <div class="evidence-row">
             <strong>当前 API 边界</strong>
             <span>
-              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/backend/app/api/chat.py#L14-L36">backend/app/api/chat.py:14-36</a>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/homeguard-agent/backend/app/api/chat.py#L14-L36">backend/app/api/chat.py:14-36</a>
               每次请求创建 AgentLoop，读取/写回进程内会话。
             </span>
           </div>
           <div class="evidence-row">
             <strong>当前前端轨迹</strong>
             <span>
-              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/video_search_agent/frontend/src/components/ToolTrace.tsx#L7-L33">frontend/src/components/ToolTrace.tsx:7-33</a>
+              <a href="file:///Users/bytedance/Desktop/%E6%88%91%E7%9A%84%E5%9D%9A%E6%9E%9C%E4%BA%91/AI%20coding/Trae/homeguard-agent/frontend/src/components/ToolTrace.tsx#L7-L33">frontend/src/components/ToolTrace.tsx:7-33</a>
               把工具事件以折叠面板展示给调试/学习视角。
             </span>
           </div>
